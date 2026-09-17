@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - IA & Sync</title>
+  <title>LearnCraft TDAH - Cloud & IA</title>
   <style>
     :root {
       --primary: #2e7d32;
@@ -12,6 +12,7 @@
       --card-bg: #ffffff;
       --text: #333333;
       --ai-purple: #7b1fa2;
+      --drive-blue: #1565c0;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -43,6 +44,7 @@
     .btn-warning { background: #ffa726; color: #000; }
     .btn-ai { background: var(--ai-purple); color: white; }
     .btn-ai:hover { background: #4a148c; }
+    .btn-drive { background: var(--drive-blue); color: white; }
     
     .container { width: 100%; max-width: 480px; }
     
@@ -140,7 +142,7 @@
   <div class="nav-btns">
     <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages & IA</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Cloud & IA</button>
   </div>
 
   <div class="container">
@@ -183,8 +185,17 @@
       <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
-    <!-- GESTIONNAIRE & IA VIEW -->
+    <!-- GESTIONNAIRE, CLOUD & IA VIEW -->
     <div id="view-manager" style="display: none;">
+
+      <!-- SYNCHRONISATION GOOGLE SHEETS / DRIVE -->
+      <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
+        <h3 style="color: var(--drive-blue);">☁️ Synchronisation Google Sheet / Drive</h3>
+        <label><strong>Lien CSV Google Sheet (Publié sur le web) :</strong></label>
+        <input type="text" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" onchange="saveSheetUrl()">
+        <button onclick="syncFromGoogleSheet()" class="btn-drive" style="width:100%;">🔄 Synchroniser maintenant</button>
+        <div id="sheet-status" class="loading-spinner" style="color:var(--drive-blue);">⏳ Téléchargement du Google Sheet...</div>
+      </div>
       
       <!-- CONFIGURATION API IA -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
@@ -203,7 +214,7 @@
 
       <!-- IMPORT CSV LOCAL -->
       <div class="section-box">
-        <h3>📁 Importer un fichier CSV</h3>
+        <h3>📁 Importer un fichier CSV local</h3>
         <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
       </div>
 
@@ -227,6 +238,7 @@
     let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
       currentNotion: "Plantes Médicinales",
       apiKey: "",
+      sheetUrl: "",
       notions: {
         "Plantes Médicinales": [
           { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle, Flavonoïdes", proprietes: "Cicatrisante, Antispasmodique" }
@@ -247,6 +259,11 @@
       alert("Clé API enregistrée !");
     }
 
+    function saveSheetUrl() {
+      store.sheetUrl = document.getElementById('sheet-url-input').value.trim();
+      saveStore();
+    }
+
     function updateSelectOptions() {
       const select = document.getElementById('notion-select');
       select.innerHTML = '';
@@ -258,6 +275,7 @@
         select.appendChild(opt);
       });
       if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
+      if(store.sheetUrl) document.getElementById('sheet-url-input').value = store.sheetUrl;
     }
 
     function changeNotion() {
@@ -275,12 +293,12 @@
       const list = getCurrentList();
       if (list.length === 0) return;
       const p = list[currentIndex];
-      document.getElementById('fc-name').innerText = p.nom;
-      document.getElementById('fc-latin').innerText = p.latin;
-      document.getElementById('fc-family').innerText = p.famille;
+      document.getElementById('fc-name').innerText = p.nom || '';
+      document.getElementById('fc-latin').innerText = p.latin || '';
+      document.getElementById('fc-family').innerText = p.famille || 'Général';
       document.getElementById('fc-img').src = p.image || '';
-      document.getElementById('fc-comp').innerText = p.composition;
-      document.getElementById('fc-prop').innerText = p.proprietes;
+      document.getElementById('fc-comp').innerText = p.composition || 'N/A';
+      document.getElementById('fc-prop').innerText = p.proprietes || 'N/A';
       document.getElementById('fc-details').style.display = 'none';
       document.getElementById('fc-mnemonic').style.display = 'none';
     }
@@ -302,6 +320,47 @@
       if(list.length === 0) return;
       currentIndex = (currentIndex - 1 + list.length) % list.length;
       renderFlashcard();
+    }
+
+    // --- SYNCHRONISATION GOOGLE SHEETS ---
+    async function syncFromGoogleSheet() {
+      const url = store.sheetUrl || document.getElementById('sheet-url-input').value.trim();
+      if(!url) return alert("Saisis d'abord l'URL CSV de ton Google Sheet !");
+
+      document.getElementById('sheet-status').style.display = 'block';
+
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        parseAndLoadCSV(text, "Google Drive Sheet");
+        document.getElementById('sheet-status').style.display = 'none';
+        alert("Synchronisation réussie depuis Google Sheet !");
+        switchView('flashcard');
+      } catch (err) {
+        document.getElementById('sheet-status').style.display = 'none';
+        alert("Erreur lors de la synchronisation : " + err.message);
+      }
+    }
+
+    function parseAndLoadCSV(csvText, notionName) {
+      const lines = csvText.split('\n').filter(l => l.trim() !== '');
+      let newList = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+        if (cols.length >= 2) {
+          newList.push({
+            nom: cols[0] || 'Sans nom',
+            latin: cols[1] || '',
+            famille: cols[2] || 'Général',
+            image: cols[3] || '',
+            proprietes: cols[4] || 'N/A',
+            composition: cols[5] || 'N/A'
+          });
+        }
+      }
+      store.notions[notionName] = newList;
+      store.currentNotion = notionName;
+      saveStore();
     }
 
     // --- INTEGRATION IA GEMINI ---
@@ -370,7 +429,6 @@
 
       if(res) {
         try {
-          // Nettoyage au cas où l'IA entoure de ```json ... ```
           const cleanJson = res.replace(/```json/g, '').replace(/```/g, '').trim();
           const newItems = JSON.parse(cleanJson);
           
@@ -390,7 +448,7 @@
       }
     }
 
-    // --- GESTION MANUELLE & CSV ---
+    // --- GESTION MANUELLE & CSV LOCAL ---
     function addPlantManual() {
       const nom = document.getElementById('add-nom').value.trim();
       if (!nom) return alert("Nom obligatoire !");
@@ -415,28 +473,7 @@
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(l => l.trim() !== '');
-        const notionName = file.name.replace('.csv', '');
-        
-        let newList = [];
-        for (let i = 1; i < lines.length; i++) {
-          const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-          if (cols.length >= 2) {
-            newList.push({
-              nom: cols[0] || 'Sans nom',
-              latin: cols[1] || '',
-              famille: cols[2] || 'Général',
-              image: cols[3] || '',
-              proprietes: cols[4] || 'N/A',
-              composition: cols[5] || 'N/A'
-            });
-          }
-        }
-
-        store.notions[notionName] = newList;
-        store.currentNotion = notionName;
-        saveStore();
+        parseAndLoadCSV(e.target.result, file.name.replace('.csv', ''));
         switchView('flashcard');
       };
       reader.readAsText(file);
