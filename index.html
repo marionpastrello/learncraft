@@ -717,15 +717,15 @@
       }
     }
 
-    // --- FONCTION API GEMINI MISE À JOUR AVEC LE NOUVEAU MODÈLE ---
+    // --- FONCTION API GEMINI UTILISANT LES NOMS DE MODÈLES ACTIFS ---
     async function callGeminiAPI(promptText) {
       if(!store.apiKey) {
         alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
         return null;
       }
 
-      // Utilisation du modèle recommandé par Google : gemini-3.6-flash (fallback gemini-1.5-flash)
-      const models = ['gemini-3.6-flash', 'gemini-1.5-flash'];
+      // Modèles actuels actifs préconisés par Google AI
+      const models = ['gemini-flash-latest', 'gemini-3.8-flash'];
       
       for (let model of models) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${store.apiKey}`;
