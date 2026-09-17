@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Cloud & IA</title>
+  <title>LearnCraft TDAH - Drive Privé & IA</title>
+  <!-- Chargement de la bibliothèque officielle Google OAuth2 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --primary: #2e7d32;
@@ -133,16 +135,24 @@
       font-size: 13px;
       margin-top: 5px;
     }
+
+    .sync-status {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--drive-blue);
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
 
   <h1>🌿 LearnCraft</h1>
+  <div id="sync-info" class="sync-status">💾 Sauvegarde locale uniquement</div>
 
   <div class="nav-btns">
     <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Cloud & IA</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & IA</button>
   </div>
 
   <div class="container">
@@ -185,16 +195,16 @@
       <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
-    <!-- GESTIONNAIRE, CLOUD & IA VIEW -->
+    <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
 
-      <!-- SYNCHRONISATION GOOGLE SHEETS / DRIVE -->
+      <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ -->
       <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
-        <h3 style="color: var(--drive-blue);">☁️ Synchronisation Google Sheet / Drive</h3>
-        <label><strong>Lien CSV Google Sheet (Publié sur le web) :</strong></label>
-        <input type="text" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" onchange="saveSheetUrl()">
-        <button onclick="syncFromGoogleSheet()" class="btn-drive" style="width:100%;">🔄 Synchroniser maintenant</button>
-        <div id="sheet-status" class="loading-spinner" style="color:var(--drive-blue);">⏳ Téléchargement du Google Sheet...</div>
+        <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive Privé</h3>
+        <label><strong>ID Client Google Cloud :</strong></label>
+        <input type="text" id="client-id-input" placeholder="000000000000-xxx.apps.googleusercontent.com" onchange="saveClientId()">
+        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%;">🔗 Connecter mon Google Drive</button>
+        <button onclick="syncToDrive()" class="btn-secondary" style="width:100%; margin-top:5px;">☁️ Forcer la synchronisation</button>
       </div>
       
       <!-- CONFIGURATION API IA -->
@@ -207,7 +217,7 @@
       <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA</h3>
-        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil avec nom, latin, famille, composition et propriétés..."></textarea>
+        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil..."></textarea>
         <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
         <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
       </div>
@@ -238,7 +248,7 @@
     let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
       currentNotion: "Plantes Médicinales",
       apiKey: "",
-      sheetUrl: "",
+      clientId: "",
       notions: {
         "Plantes Médicinales": [
           { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle, Flavonoïdes", proprietes: "Cicatrisante, Antispasmodique" }
@@ -247,10 +257,13 @@
     };
 
     let currentIndex = 0;
+    let accessToken = null;
+    let driveFileId = null;
 
     function saveStore() {
       localStorage.setItem('learncraft_db', JSON.stringify(store));
       updateSelectOptions();
+      if(accessToken) syncToDrive();
     }
 
     function saveApiKey() {
@@ -259,8 +272,8 @@
       alert("Clé API enregistrée !");
     }
 
-    function saveSheetUrl() {
-      store.sheetUrl = document.getElementById('sheet-url-input').value.trim();
+    function saveClientId() {
+      store.clientId = document.getElementById('client-id-input').value.trim();
       saveStore();
     }
 
@@ -275,7 +288,7 @@
         select.appendChild(opt);
       });
       if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
-      if(store.sheetUrl) document.getElementById('sheet-url-input').value = store.sheetUrl;
+      if(store.clientId) document.getElementById('client-id-input').value = store.clientId;
     }
 
     function changeNotion() {
@@ -322,45 +335,82 @@
       renderFlashcard();
     }
 
-    // --- SYNCHRONISATION GOOGLE SHEETS ---
-    async function syncFromGoogleSheet() {
-      const url = store.sheetUrl || document.getElementById('sheet-url-input').value.trim();
-      if(!url) return alert("Saisis d'abord l'URL CSV de ton Google Sheet !");
+    // --- CONNECTIVITÉ GOOGLE DRIVE OAUTH2 PRIVÉ ---
+    function connectGoogleDrive() {
+      if(!store.clientId) return alert("Renseigne d'abord ton ID Client Google !");
 
-      document.getElementById('sheet-status').style.display = 'block';
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: store.clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: async (response) => {
+          if (response.access_token) {
+            accessToken = response.access_token;
+            document.getElementById('sync-info').innerText = "☁️ Connecté à ton Drive Privé";
+            await loadFromDrive();
+          }
+        },
+      });
+      client.requestAccessToken();
+    }
+
+    async function syncToDrive() {
+      if(!accessToken) return;
+      document.getElementById('sync-info').innerText = "🔄 Synchronisation...";
+
+      const fileContent = JSON.stringify(store);
+      const file = new Blob([fileContent], { type: 'application/json' });
+      const metadata = { name: 'learncraft_private_db.json', mimeType: 'application/json' };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', file);
+
+      let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      let method = 'POST';
+
+      if(driveFileId) {
+        url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
+        method = 'PATCH';
+      }
 
       try {
-        const response = await fetch(url);
-        const text = await response.text();
-        parseAndLoadCSV(text, "Google Drive Sheet");
-        document.getElementById('sheet-status').style.display = 'none';
-        alert("Synchronisation réussie depuis Google Sheet !");
-        switchView('flashcard');
-      } catch (err) {
-        document.getElementById('sheet-status').style.display = 'none';
-        alert("Erreur lors de la synchronisation : " + err.message);
+        const res = await fetch(url, {
+          method,
+          headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+          body: form
+        });
+        const data = await res.json();
+        driveFileId = data.id;
+        document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
+      } catch (e) {
+        document.getElementById('sync-info').innerText = "❌ Erreur Synchro";
       }
     }
 
-    function parseAndLoadCSV(csvText, notionName) {
-      const lines = csvText.split('\n').filter(l => l.trim() !== '');
-      let newList = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-        if (cols.length >= 2) {
-          newList.push({
-            nom: cols[0] || 'Sans nom',
-            latin: cols[1] || '',
-            famille: cols[2] || 'Général',
-            image: cols[3] || '',
-            proprietes: cols[4] || 'N/A',
-            composition: cols[5] || 'N/A'
+    async function loadFromDrive() {
+      try {
+        const query = encodeURIComponent("name = 'learncraft_private_db.json' and trashed = false");
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
+          headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+        const data = await res.json();
+
+        if (data.files && data.files.length > 0) {
+          driveFileId = data.files[0].id;
+          const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
           });
+          const cloudStore = await fileRes.json();
+          store = cloudStore;
+          saveStore();
+          renderFlashcard();
+          alert("Données privées chargées depuis Google Drive !");
+        } else {
+          syncToDrive();
         }
+      } catch(e) {
+        console.error("Erreur de chargement Drive", e);
       }
-      store.notions[notionName] = newList;
-      store.currentNotion = notionName;
-      saveStore();
     }
 
     // --- INTEGRATION IA GEMINI ---
@@ -473,7 +523,25 @@
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        parseAndLoadCSV(e.target.result, file.name.replace('.csv', ''));
+        const lines = e.target.result.split('\n').filter(l => l.trim() !== '');
+        let newList = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+          if (cols.length >= 2) {
+            newList.push({
+              nom: cols[0] || 'Sans nom',
+              latin: cols[1] || '',
+              famille: cols[2] || 'Général',
+              image: cols[3] || '',
+              proprietes: cols[4] || 'N/A',
+              composition: cols[5] || 'N/A'
+            });
+          }
+        }
+        const notionName = file.name.replace('.csv', '');
+        store.notions[notionName] = newList;
+        store.currentNotion = notionName;
+        saveStore();
         switchView('flashcard');
       };
       reader.readAsText(file);
