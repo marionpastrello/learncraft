@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Dossiers & Inspection Complète</title>
+  <title>LearnCraft TDAH - Monographies & Photos</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -50,7 +50,7 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: #b71c1c; }
     
-    .container { width: 100%; max-width: 600px; }
+    .container { width: 100%; max-width: 650px; }
     
     .card {
       background: var(--card-bg);
@@ -145,7 +145,7 @@
 
     .preview-table {
       width: 100%;
-      min-width: 700px;
+      min-width: 800px;
       border-collapse: collapse;
       font-size: 12px;
     }
@@ -224,9 +224,9 @@
       <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer la réponse</button>
       
       <div id="fc-details" class="details">
-        <p><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
         <p><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
         <p id="fc-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
+        <p><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
         <p id="fc-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
         
         <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
@@ -255,7 +255,7 @@
       <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES -->
       <div class="section-box" style="border-left: 4px solid var(--primary);">
         <h3>📋 Visualisation complète des cartes du cours</h3>
-        <p style="font-size:12px; color:#666; margin-top:-5px;">Toutes les données du cours sélectionné (défilement horizontal/vertical) :</p>
+        <p style="font-size:12px; color:#666; margin-top:-5px;">Toutes les données du cours sélectionné :</p>
         <div class="table-scroll-container">
           <table class="preview-table">
             <thead>
@@ -263,9 +263,10 @@
                 <th>Nom commun</th>
                 <th>Nom scientifique</th>
                 <th>Famille</th>
-                <th>Composants actifs</th>
+                <th>Photo (URL)</th>
                 <th>Propriétés principales</th>
                 <th>Autres propriétés</th>
+                <th>Composants actifs</th>
                 <th>Risques / CI</th>
                 <th>Action</th>
               </tr>
@@ -279,7 +280,6 @@
       <div class="section-box" style="border-left: 4px solid var(--danger);">
         <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
         
-        <!-- CRÉATION D'UN DOSSIER -->
         <div class="flex-row" style="margin-bottom:12px;">
           <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier (ex: Pharmacologie)" style="margin:0;">
           <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
@@ -339,7 +339,7 @@
       },
       notions: {
         "Plantes Médicinales": [
-          { nom: "Acore odorant / Acore", latin: "Acorus calamus", famille: "Acoracées", image: "", composition: "HE (β-asarone), Hétéroside amer", proprietes: "Tonique amer, Carminatif, Cicatrisant", autresProp: "Anti-infectieux, Antifongique", risques: "N/A" }
+          { nom: "Acore odorant / Acore", latin: "Acorus calamus", famille: "Araceae", image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80", proprietes: "Tonique amer\nCarminatif\nCicatrisant muqueuse gastrique", autresProp: "Anti-infectieux\nAntifongique", composition: "HE (β-asarone)\nHétéroside amer", risques: "N/A" }
         ]
       }
     };
@@ -394,7 +394,6 @@
       select.innerHTML = '';
       folderImportSelect.innerHTML = '';
 
-      // Mettre à jour le sélecteur de dossier d'import
       store.folders.forEach(f => {
         const opt = document.createElement('option');
         opt.value = f;
@@ -402,7 +401,6 @@
         folderImportSelect.appendChild(opt);
       });
 
-      // Regroupement des cours par dossiers
       const grouped = {};
       store.folders.forEach(f => grouped[f] = []);
       grouped["Général"] = grouped["Général"] || [];
@@ -477,7 +475,7 @@
       tbody.innerHTML = '';
       const list = getCurrentList();
       if(list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
         return;
       }
       list.forEach((item, idx) => {
@@ -486,9 +484,10 @@
           <td><strong>${item.nom || '-'}</strong></td>
           <td><em>${item.latin || '-'}</em></td>
           <td>${item.famille || '-'}</td>
-          <td>${item.composition || '-'}</td>
+          <td>${item.image ? '📷 Présente' : '-'}</td>
           <td>${item.proprietes || '-'}</td>
           <td>${item.autresProp || '-'}</td>
+          <td>${item.composition || '-'}</td>
           <td>${item.risques || '-'}</td>
           <td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>
         `;
@@ -585,14 +584,38 @@
       renderFlashcard();
     }
 
+    // --- PARSEUR CSV MULTI-LIGNES AVEC DÉCOUPAGE PAR MATRICE REGEX ---
+    function parseCSVMatrix(text) {
+      let p = '', c = '', r = [];
+      let q = false;
+      let row = [''];
+      for (let l = 0; l < text.length; l++) {
+        c = text[l];
+        p = l > 0 ? text[l - 1] : '';
+        if (c === '"') {
+          if (q && text[l + 1] === '"') { row[row.length - 1] += '"'; l++; }
+          else { q = !q; }
+        } else if (c === ',' && !q) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !q) {
+          if (c === '\r' && text[l + 1] === '\n') { l++; }
+          r.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== '') { r.push(row); }
+      return r;
+    }
+
     function parseCustomCSV(csvText) {
-      const lines = csvText.split('\n').filter(l => l.trim() !== '');
-      if (lines.length < 2) return [];
+      const rows = parseCSVMatrix(csvText);
+      if (rows.length < 2) return [];
 
       let list = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
-        const cleanCols = cols.map(c => c.replace(/^"|"$/g, '').replace(/\\n/g, '\n').trim());
+      for (let i = 1; i < rows.length; i++) {
+        const cleanCols = rows[i].map(c => c.trim());
 
         if (cleanCols.length >= 1 && cleanCols[0] !== '') {
           let rawNom = cleanCols[0] || '';
@@ -600,7 +623,7 @@
           let nomFr = rawNom;
 
           if (rawNom.includes('(') && rawNom.includes(')')) {
-            const match = rawNom.match(/(.*?)\n*\((.*?)\)/);
+            const match = rawNom.match(/(.*?)\n*\((.*?)\)/s);
             if (match) {
               latin = latin || match[1].trim();
               nomFr = match[2].trim();
@@ -611,11 +634,11 @@
             nom: nomFr,
             latin: latin,
             famille: cleanCols[2] || 'Général',
-            proprietes: cleanCols[2] || cleanCols[3] || 'N/A',
-            autresProp: cleanCols[3] || '',
-            composition: cleanCols[4] || 'N/A',
-            risques: cleanCols[5] || '',
-            image: ''
+            image: cleanCols[3] || '',
+            proprietes: cleanCols[4] || 'N/A',
+            autresProp: cleanCols[5] || '',
+            composition: cleanCols[6] || 'N/A',
+            risques: cleanCols[7] || ''
           });
         }
       }
