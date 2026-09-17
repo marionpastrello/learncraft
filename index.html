@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Drive Privé & IA</title>
-  <!-- Chargement de la bibliothèque officielle Google OAuth2 -->
+  <title>LearnCraft TDAH - Drive, Dossiers & Inspection</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -15,6 +14,7 @@
       --text: #333333;
       --ai-purple: #7b1fa2;
       --drive-blue: #1565c0;
+      --danger: #d32f2f;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -47,8 +47,10 @@
     .btn-ai { background: var(--ai-purple); color: white; }
     .btn-ai:hover { background: #4a148c; }
     .btn-drive { background: var(--drive-blue); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b71c1c; }
     
-    .container { width: 100%; max-width: 480px; }
+    .container { width: 100%; max-width: 520px; }
     
     .card {
       background: var(--card-bg);
@@ -83,7 +85,7 @@
       padding-top: 15px;
       display: none;
     }
-    .details p { margin: 8px 0; font-size: 14px; }
+    .details p { margin: 8px 0; font-size: 14px; white-space: pre-line; }
     .details strong { color: var(--primary); }
 
     .mnemonic-box {
@@ -116,6 +118,34 @@
       box-sizing: border-box;
       font-size: 14px;
       font-family: inherit;
+    }
+
+    .course-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .preview-table th, .preview-table td {
+      border: 1px solid #e0e0e0;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .preview-table th {
+      background-color: #f0f0f0;
+      color: var(--primary);
     }
 
     .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -172,8 +202,10 @@
       <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer la réponse</button>
       
       <div id="fc-details" class="details">
-        <p><strong>🧪 Composition :</strong> <span id="fc-comp"></span></p>
-        <p><strong>✨ Propriétés :</strong> <span id="fc-prop"></span></p>
+        <p><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
+        <p><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
+        <p id="fc-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
+        <p id="fc-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
         
         <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
         <div id="fc-mnemonic" class="mnemonic-box"></div>
@@ -188,7 +220,7 @@
     <!-- QCM VIEW -->
     <div id="view-qcm" class="card" style="display: none;">
       <span id="qcm-badge" class="badge">Question QCM</span>
-      <h3 id="qcm-question">Quel est le nom scientifique ?</h3>
+      <h3 id="qcm-question">Quel est le nom scientifique / propriétés ?</h3>
       <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
       <div id="qcm-options" class="qcm-options"></div>
       <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
@@ -198,20 +230,50 @@
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
 
-      <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ -->
+      <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES (NOUVEAU) -->
+      <div class="section-box" style="border-left: 4px solid var(--primary);">
+        <h3>📋 Cartes du cours actif</h3>
+        <p style="font-size:12px; color:#666; margin-top:-5px;">Vérifiez ci-dessous le contenu généré ou importé :</p>
+        <div style="max-height: 200px; overflow-y: auto;">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Nom Scientifique</th>
+                <th>Propriétés</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="preview-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GESTION DES DOSSIERS & COURS -->
+      <div class="section-box" style="border-left: 4px solid var(--danger);">
+        <h3 style="color: var(--danger);">📂 Organisation des Dossiers & Cours</h3>
+        <div id="courses-list"></div>
+      </div>
+
+      <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ & SHEET -->
       <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
-        <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive Privé</h3>
+        <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive & Sheets</h3>
+        <label><strong>Dossier de destination pour l'import :</strong></label>
+        <input type="text" id="target-folder-input" placeholder="Ex: Botanique, Pharmacologie..." value="Général">
+
         <label><strong>ID Client Google Cloud :</strong></label>
         <input type="text" id="client-id-input" placeholder="000000000000-xxx.apps.googleusercontent.com" onchange="saveClientId()">
-        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%;">🔗 Connecter mon Google Drive</button>
-        <button onclick="syncToDrive()" class="btn-secondary" style="width:100%; margin-top:5px;">☁️ Forcer la synchronisation</button>
+        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%;">🔗 1. Connecter mon Google Drive</button>
+        
+        <label style="margin-top: 10px; display:block;"><strong>ID du fichier Google Sheet :</strong></label>
+        <input type="text" id="sheet-id-input" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" onchange="saveSheetId()">
+        <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
       </div>
       
       <!-- CONFIGURATION API IA -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">🔑 Clé API Gemini (IA)</h3>
         <input type="password" id="api-key-input" placeholder="Colle ta clé API Gemini ici..." onchange="saveApiKey()">
-        <p style="font-size:11px; color:#666; margin: 0;">Obtiens une clé gratuite sur : <code>aistudio.google.com/app/apikey</code></p>
       </div>
 
       <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
@@ -228,18 +290,6 @@
         <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
       </div>
 
-      <!-- ÉDITEUR MANUEL -->
-      <div class="section-box">
-        <h3>📝 Ajouter une plante à la main</h3>
-        <input type="text" id="add-nom" placeholder="Nom commun">
-        <input type="text" id="add-latin" placeholder="Nom scientifique">
-        <input type="text" id="add-famille" placeholder="Famille">
-        <input type="text" id="add-img" placeholder="URL de l'image">
-        <input type="text" id="add-comp" placeholder="Composition">
-        <input type="text" id="add-prop" placeholder="Propriétés">
-        <button onclick="addPlantManual()">💾 Enregistrer</button>
-      </div>
-
     </div>
 
   </div>
@@ -249,12 +299,18 @@
       currentNotion: "Plantes Médicinales",
       apiKey: "",
       clientId: "",
+      sheetId: "",
+      coursesMeta: {
+        "Plantes Médicinales": { folder: "Botanique" }
+      },
       notions: {
         "Plantes Médicinales": [
-          { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle, Flavonoïdes", proprietes: "Cicatrisante, Antispasmodique" }
+          { nom: "Acore odorant / Acore", latin: "Acorus calamus", famille: "Acoracées", image: "", composition: "HE (β-asarone), Hétéroside amer", proprietes: "Tonique amer, Carminatif, Cicatrisant", autresProp: "Anti-infectieux, Antifongique", risques: "N/A" }
         ]
       }
     };
+
+    if(!store.coursesMeta) store.coursesMeta = {};
 
     let currentIndex = 0;
     let accessToken = null;
@@ -263,6 +319,8 @@
     function saveStore() {
       localStorage.setItem('learncraft_db', JSON.stringify(store));
       updateSelectOptions();
+      renderCoursesList();
+      renderPreviewTable();
       if(accessToken) syncToDrive();
     }
 
@@ -277,18 +335,105 @@
       saveStore();
     }
 
+    function saveSheetId() {
+      store.sheetId = document.getElementById('sheet-id-input').value.trim();
+      saveStore();
+    }
+
     function updateSelectOptions() {
       const select = document.getElementById('notion-select');
       select.innerHTML = '';
+
+      // Regroupement par dossiers
+      const folders = {};
       Object.keys(store.notions).forEach(key => {
-        const opt = document.createElement('option');
-        opt.value = key;
-        opt.innerText = key;
-        if(key === store.currentNotion) opt.selected = true;
-        select.appendChild(opt);
+        const folderName = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        if(!folders[folderName]) folders[folderName] = [];
+        folders[folderName].push(key);
       });
+
+      Object.keys(folders).forEach(folder => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = `📁 ${folder}`;
+        folders[folder].forEach(key => {
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.innerText = `${key} (${store.notions[key].length} cartes)`;
+          if(key === store.currentNotion) opt.selected = true;
+          optgroup.appendChild(opt);
+        });
+        select.appendChild(optgroup);
+      });
+
       if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
       if(store.clientId) document.getElementById('client-id-input').value = store.clientId;
+      if(store.sheetId) document.getElementById('sheet-id-input').value = store.sheetId;
+    }
+
+    function renderCoursesList() {
+      const container = document.getElementById('courses-list');
+      container.innerHTML = '';
+      const keys = Object.keys(store.notions);
+      if(keys.length === 0) {
+        container.innerHTML = '<p style="font-size:13px; color:#888;">Aucun cours enregistré.</p>';
+        return;
+      }
+      keys.forEach(key => {
+        const folder = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        const div = document.createElement('div');
+        div.className = 'course-item';
+        div.innerHTML = `
+          <div>
+            <strong>${key}</strong> <span style="font-size:11px; color:#666;">(Dossier: ${folder})</span>
+            <br><span style="font-size:11px; color:#888;">${store.notions[key].length} cartes</span>
+          </div>
+          <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️ Supprimer</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderPreviewTable() {
+      const tbody = document.getElementById('preview-table-body');
+      tbody.innerHTML = '';
+      const list = getCurrentList();
+      if(list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
+        return;
+      }
+      list.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.nom || '-'}</strong></td>
+          <td><em>${item.latin || '-'}</em></td>
+          <td>${(item.proprietes || '-').substring(0, 30)}...</td>
+          <td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function deleteSingleCard(index) {
+      const list = getCurrentList();
+      list.splice(index, 1);
+      saveStore();
+      renderFlashcard();
+    }
+
+    function deleteCourse(key) {
+      if(confirm(`Voulez-vous vraiment supprimer le cours "${key}" ?`)) {
+        delete store.notions[key];
+        delete store.coursesMeta[key];
+        const remaining = Object.keys(store.notions);
+        if(remaining.length > 0) {
+          store.currentNotion = remaining[0];
+        } else {
+          store.notions["Nouveau cours"] = [];
+          store.currentNotion = "Nouveau cours";
+        }
+        saveStore();
+        renderFlashcard();
+      }
     }
 
     function changeNotion() {
@@ -304,7 +449,14 @@
 
     function renderFlashcard() {
       const list = getCurrentList();
-      if (list.length === 0) return;
+      if (list.length === 0) {
+        document.getElementById('fc-name').innerText = "Aucune carte";
+        document.getElementById('fc-latin').innerText = "";
+        document.getElementById('fc-family').innerText = "-";
+        document.getElementById('fc-comp').innerText = "-";
+        document.getElementById('fc-prop').innerText = "-";
+        return;
+      }
       const p = list[currentIndex];
       document.getElementById('fc-name').innerText = p.nom || '';
       document.getElementById('fc-latin').innerText = p.latin || '';
@@ -312,6 +464,21 @@
       document.getElementById('fc-img').src = p.image || '';
       document.getElementById('fc-comp').innerText = p.composition || 'N/A';
       document.getElementById('fc-prop').innerText = p.proprietes || 'N/A';
+
+      if(p.autresProp) {
+        document.getElementById('fc-other-prop-container').style.display = 'block';
+        document.getElementById('fc-other-prop').innerText = p.autresProp;
+      } else {
+        document.getElementById('fc-other-prop-container').style.display = 'none';
+      }
+
+      if(p.risques) {
+        document.getElementById('fc-risk-container').style.display = 'block';
+        document.getElementById('fc-risk').innerText = p.risques;
+      } else {
+        document.getElementById('fc-risk-container').style.display = 'none';
+      }
+
       document.getElementById('fc-details').style.display = 'none';
       document.getElementById('fc-mnemonic').style.display = 'none';
     }
@@ -335,18 +502,84 @@
       renderFlashcard();
     }
 
-    // --- CONNECTIVITÉ GOOGLE DRIVE OAUTH2 PRIVÉ ---
+    function parseCustomCSV(csvText) {
+      const lines = csvText.split('\n').filter(l => l.trim() !== '');
+      if (lines.length < 2) return [];
+
+      let list = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+        const cleanCols = cols.map(c => c.replace(/^"|"$/g, '').replace(/\\n/g, '\n').trim());
+
+        if (cleanCols.length >= 1 && cleanCols[0] !== '') {
+          let rawNom = cleanCols[0] || '';
+          let latin = cleanCols[1] || '';
+          let nomFr = rawNom;
+
+          if (rawNom.includes('(') && rawNom.includes(')')) {
+            const match = rawNom.match(/(.*?)\n*\((.*?)\)/);
+            if (match) {
+              latin = latin || match[1].trim();
+              nomFr = match[2].trim();
+            }
+          }
+
+          list.push({
+            nom: nomFr,
+            latin: latin,
+            famille: cleanCols[2] || 'Général',
+            proprietes: cleanCols[2] || cleanCols[3] || 'N/A',
+            autresProp: cleanCols[3] || '',
+            composition: cleanCols[4] || 'N/A',
+            risques: cleanCols[5] || '',
+            image: ''
+          });
+        }
+      }
+      return list;
+    }
+
+    async function importGoogleSheet() {
+      const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
+      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'Général';
+      if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
+      if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
+
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+        const csvText = await res.text();
+        const newList = parseCustomCSV(csvText);
+
+        if(newList.length > 0) {
+          const notionName = "Monographie Sheet";
+          store.notions[notionName] = newList;
+          store.coursesMeta[notionName] = { folder: targetFolder };
+          store.currentNotion = notionName;
+          saveStore();
+          alert(`Google Sheet chargé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
+          switchView('flashcard');
+        } else {
+          alert("Impossible de lire les données du fichier Google Sheet.");
+        }
+      } catch(e) {
+        alert("Erreur lors du chargement du Google Sheet : " + e.message);
+      }
+    }
+
     function connectGoogleDrive() {
       if(!store.clientId) return alert("Renseigne d'abord ton ID Client Google !");
 
       const client = google.accounts.oauth2.initTokenClient({
         client_id: store.clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
+        scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
         callback: async (response) => {
           if (response.access_token) {
             accessToken = response.access_token;
             document.getElementById('sync-info').innerText = "☁️ Connecté à ton Drive Privé";
-            await loadFromDrive();
+            alert("Connecté à Google Drive avec succès !");
           }
         },
       });
@@ -387,33 +620,6 @@
       }
     }
 
-    async function loadFromDrive() {
-      try {
-        const query = encodeURIComponent("name = 'learncraft_private_db.json' and trashed = false");
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
-          headers: { 'Authorization': 'Bearer ' + accessToken }
-        });
-        const data = await res.json();
-
-        if (data.files && data.files.length > 0) {
-          driveFileId = data.files[0].id;
-          const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
-          });
-          const cloudStore = await fileRes.json();
-          store = cloudStore;
-          saveStore();
-          renderFlashcard();
-          alert("Données privées chargées depuis Google Drive !");
-        } else {
-          syncToDrive();
-        }
-      } catch(e) {
-        console.error("Erreur de chargement Drive", e);
-      }
-    }
-
-    // --- INTEGRATION IA GEMINI ---
     async function callGeminiAPI(promptText) {
       if(!store.apiKey) {
         alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
@@ -458,6 +664,7 @@
 
     async function generateCourseWithAI() {
       const userPrompt = document.getElementById('ai-prompt-input').value.trim();
+      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'IA';
       if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
 
       document.getElementById('ai-status').style.display = 'block';
@@ -483,10 +690,8 @@
           const newItems = JSON.parse(cleanJson);
           
           const notionName = "IA - " + userPrompt.substring(0, 20);
-          store.notions[notionName] = newItems.map(item => ({
-            ...item,
-            image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80"
-          }));
+          store.notions[notionName] = newItems;
+          store.coursesMeta[notionName] = { folder: targetFolder };
 
           store.currentNotion = notionName;
           saveStore();
@@ -498,50 +703,20 @@
       }
     }
 
-    // --- GESTION MANUELLE & CSV LOCAL ---
-    function addPlantManual() {
-      const nom = document.getElementById('add-nom').value.trim();
-      if (!nom) return alert("Nom obligatoire !");
-
-      store.notions[store.currentNotion].push({
-        nom,
-        latin: document.getElementById('add-latin').value.trim(),
-        famille: document.getElementById('add-famille').value.trim() || 'Général',
-        image: document.getElementById('add-img').value.trim(),
-        composition: document.getElementById('add-comp').value.trim() || 'N/A',
-        proprietes: document.getElementById('add-prop').value.trim() || 'N/A'
-      });
-
-      saveStore();
-      alert("Ajouté !");
-      renderFlashcard();
-    }
-
     function importLocalCSV(event) {
       const file = event.target.files[0];
+      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'Général';
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        const lines = e.target.result.split('\n').filter(l => l.trim() !== '');
-        let newList = [];
-        for (let i = 1; i < lines.length; i++) {
-          const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-          if (cols.length >= 2) {
-            newList.push({
-              nom: cols[0] || 'Sans nom',
-              latin: cols[1] || '',
-              famille: cols[2] || 'Général',
-              image: cols[3] || '',
-              proprietes: cols[4] || 'N/A',
-              composition: cols[5] || 'N/A'
-            });
-          }
-        }
+        const newList = parseCustomCSV(e.target.result);
         const notionName = file.name.replace('.csv', '');
         store.notions[notionName] = newList;
+        store.coursesMeta[notionName] = { folder: targetFolder };
         store.currentNotion = notionName;
         saveStore();
+        alert(`Fichier local importé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
         switchView('flashcard');
       };
       reader.readAsText(file);
@@ -552,9 +727,15 @@
       document.getElementById('view-qcm').style.display = view === 'qcm' ? 'block' : 'none';
       document.getElementById('view-manager').style.display = view === 'manager' ? 'block' : 'none';
       if(view === 'flashcard') renderFlashcard();
+      if(view === 'manager') {
+        renderCoursesList();
+        renderPreviewTable();
+      }
     }
 
     updateSelectOptions();
+    renderCoursesList();
+    renderPreviewTable();
     renderFlashcard();
   </script>
 </body>
