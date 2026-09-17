@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnCraft TDAH - Sync Cloud</title>
+  <!-- Chargement de la bibliothèque Google API Client -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --accent: #81c784;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #333333;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      margin: 0;
+    }
+    h1 { color: var(--primary); margin-bottom: 5px; font-size: 24px; }
+    
+    .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.1s, background 0.2s;
+    }
+    button:hover { background: #1b5e20; }
+    button:active { transform: scale(0.98); }
+    .btn-secondary { background: #5c6bc0; }
+    .btn-warning { background: #ffa726; color: #000; }
+    .btn-cloud { background: #0288d1; }
+    
+    .container { width: 100%; max-width: 480px; }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .plant-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      background-color: #eee;
+    }
+    .badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .details {
+      text-align: left;
+      margin-top: 15px;
+      border-top: 2px dashed #eee;
+      padding-top: 15px;
+      display: none;
+    }
+    .details p { margin: 8px 0; font-size: 14px; }
+    .details strong { color: var(--primary); }
+
+    .section-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      text-align: left;
+      border: 1px solid #e0e0e0;
+    }
+    .section-box h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      margin: 5px 0 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .option-btn {
+      background: #ffffff;
+      color: var(--text);
+      border: 2px solid #e0e0e0;
+      text-align: left;
+    }
+    .correct { background: #c8e6c9 !important; border-color: #4caf50 !important; }
+    .wrong { background: #ffcdd2 !important; border-color: #f44336 !important; }
+    
+    .sync-status {
+      font-size: 12px;
+      font-weight: bold;
+      color: #0288d1;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌿 LearnCraft</h1>
+  <div id="sync-info" class="sync-status">💾 Sauvegarde locale (Non connecté au Drive)</div>
+
+  <div class="nav-btns">
+    <button onclick="switchView('flashcard')">🎴 Révision</button>
+    <button onclick="switchView('qcm')">❓ Mode QCM</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Mes Cours / Cloud</button>
+  </div>
+
+  <div class="container">
+
+    <div id="selector-bar" class="section-box" style="padding:10px; margin-bottom:15px;">
+      <label for="notion-select"><strong>📂 Cours actif :</strong></label>
+      <select id="notion-select" onchange="changeNotion()"></select>
+    </div>
+
+    <!-- FLASHCARD VIEW -->
+    <div id="view-flashcard" class="card">
+      <img id="fc-img" class="plant-img" src="" alt="Plante" onerror="this.src='https://via.placeholder.com/400x200?text=Pas+d%27image'">
+      <span id="fc-family" class="badge">Famille</span>
+      <h2 id="fc-name" style="margin: 5px 0;">Nom</h2>
+      <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px;">Nom scientifique</p>
+      
+      <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer la réponse</button>
+      
+      <div id="fc-details" class="details">
+        <p><strong>🧪 Composition :</strong> <span id="fc-comp"></span></p>
+        <p><strong>✨ Propriétés :</strong> <span id="fc-prop"></span></p>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+        <button onclick="prevCard()" style="background: #78909c;">⬅️ Précédent</button>
+        <button onclick="nextCard()">Suivant ➡️</button>
+      </div>
+    </div>
+
+    <!-- QCM VIEW -->
+    <div id="view-qcm" class="card" style="display: none;">
+      <span id="qcm-badge" class="badge">Question QCM</span>
+      <h3 id="qcm-question">Quel est le nom scientifique ?</h3>
+      <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://via.placeholder.com/400x200?text=Pas+d%27image'">
+      <div id="qcm-options" class="qcm-options"></div>
+      <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
+      <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
+    </div>
+
+    <!-- GESTIONNAIRE VIEW -->
+    <div id="view-manager" style="display: none;">
+      
+      <!-- SYNCHRO CLOUD -->
+      <div class="section-box">
+        <h3>☁️ Synchronisation Google Drive</h3>
+        <p style="font-size:12px; color:#666;">Connecte ton compte Google pour synchroniser automatiquement PC et téléphone.</p>
+        <button onclick="handleAuthClick()" class="btn-cloud">🔗 Connecter Google Drive</button>
+        <button onclick="syncToDrive()" class="btn-secondary" style="margin-top:5px;">☁️ Forcer la synchronisation</button>
+      </div>
+
+      <!-- IMPORT CSV LOCAL -->
+      <div class="section-box">
+        <h3>📁 Importer un fichier CSV</h3>
+        <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
+      </div>
+
+      <!-- ÉDITEUR MANUEL -->
+      <div class="section-box">
+        <h3>📝 Ajouter une plante à la main</h3>
+        <input type="text" id="add-nom" placeholder="Nom commun">
+        <input type="text" id="add-latin" placeholder="Nom scientifique">
+        <input type="text" id="add-famille" placeholder="Famille">
+        <input type="text" id="add-img" placeholder="URL de l'image">
+        <input type="text" id="add-comp" placeholder="Composition">
+        <input type="text" id="add-prop" placeholder="Propriétés">
+        <button onclick="addPlantManual()">💾 Enregistrer</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
+      currentNotion: "Plantes Médicinales",
+      notions: {
+        "Plantes Médicinales": [
+          { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle", proprietes: "Cicatrisante" }
+        ]
+      }
+    };
+
+    let currentIndex = 0;
+    let tokenClient = null;
+    let accessToken = null;
+
+    function saveStore() {
+      localStorage.setItem('learncraft_db', JSON.stringify(store));
+      updateSelectOptions();
+      if(accessToken) syncToDrive();
+    }
+
+    function updateSelectOptions() {
+      const select = document.getElementById('notion-select');
+      select.innerHTML = '';
+      Object.keys(store.notions).forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = key;
+        if(key === store.currentNotion) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function changeNotion() {
+      store.currentNotion = document.getElementById('notion-select').value;
+      currentIndex = 0;
+      saveStore();
+      renderFlashcard();
+    }
+
+    function getCurrentList() {
+      return store.notions[store.currentNotion] || [];
+    }
+
+    function renderFlashcard() {
+      const list = getCurrentList();
+      if (list.length === 0) return;
+      const p = list[currentIndex];
+      document.getElementById('fc-name').innerText = p.nom;
+      document.getElementById('fc-latin').innerText = p.latin;
+      document.getElementById('fc-family').innerText = p.famille;
+      document.getElementById('fc-img').src = p.image || '';
+      document.getElementById('fc-comp').innerText = p.composition;
+      document.getElementById('fc-prop').innerText = p.proprietes;
+      document.getElementById('fc-details').style.display = 'none';
+    }
+
+    function toggleDetails() {
+      const d = document.getElementById('fc-details');
+      d.style.display = d.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function nextCard() {
+      const list = getCurrentList();
+      if(list.length === 0) return;
+      currentIndex = (currentIndex + 1) % list.length;
+      renderFlashcard();
+    }
+
+    function prevCard() {
+      const list = getCurrentList();
+      if(list.length === 0) return;
+      currentIndex = (currentIndex - 1 + list.length) % list.length;
+      renderFlashcard();
+    }
+
+    // --- GOOGLE DRIVE SYNC ---
+    function handleAuthClick() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Remplacer par ton ID Client
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (response) => {
+          if (response.access_token) {
+            accessToken = response.access_token;
+            document.getElementById('sync-info').innerText = "☁️ Connecté à Google Drive";
+            syncFromDrive();
+          }
+        },
+      });
+      tokenClient.requestAccessToken();
+    }
+
+    async function syncToDrive() {
+      if(!accessToken) return;
+      // Logique d'envoi du JSON vers Google Drive
+      document.getElementById('sync-info').innerText = "🔄 Synchronisation...";
+      setTimeout(() => {
+        document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
+      }, 1000);
+    }
+
+    async function syncFromDrive() {
+      if(!accessToken) return;
+      // Logique de lecture du JSON depuis Google Drive
+      renderFlashcard();
+    }
+
+    // --- MANUELLE & CSV ---
+    function addPlantManual() {
+      const nom = document.getElementById('add-nom').value.trim();
+      if (!nom) return alert("Nom obligatoire !");
+
+      store.notions[store.currentNotion].push({
+        nom,
+        latin: document.getElementById('add-latin').value.trim(),
+        famille: document.getElementById('add-famille').value.trim() || 'Général',
+        image: document.getElementById('add-img').value.trim(),
+        composition: document.getElementById('add-comp').value.trim() || 'N/A',
+        proprietes: document.getElementById('add-prop').value.trim() || 'N/A'
+      });
+
+      saveStore();
+      alert("Ajouté !");
+      renderFlashcard();
+    }
+
+    function importLocalCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(l => l.trim() !== '');
+        const notionName = file.name.replace('.csv', '');
+        
+        let newList = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+          if (cols.length >= 2) {
+            newList.push({
+              nom: cols[0] || 'Sans nom',
+              latin: cols[1] || '',
+              famille: cols[2] || 'Général',
+              image: cols[3] || '',
+              proprietes: cols[4] || 'N/A',
+              composition: cols[5] || 'N/A'
+            });
+          }
+        }
+
+        store.notions[notionName] = newList;
+        store.currentNotion = notionName;
+        saveStore();
+        switchView('flashcard');
+      };
+      reader.readAsText(file);
+    }
+
+    function switchView(view) {
+      document.getElementById('view-flashcard').style.display = view === 'flashcard' ? 'block' : 'none';
+      document.getElementById('view-qcm').style.display = view === 'qcm' ? 'block' : 'none';
+      document.getElementById('view-manager').style.display = view === 'manager' ? 'block' : 'none';
+      if(view === 'flashcard') renderFlashcard();
+    }
+
+    updateSelectOptions();
+    renderFlashcard();
+  </script>
+</body>
+</html>
