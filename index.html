@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Sync Cloud</title>
-  <!-- Chargement de la bibliothèque Google API Client -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <title>LearnCraft TDAH - IA & Sync</title>
   <style>
     :root {
       --primary: #2e7d32;
@@ -13,6 +11,7 @@
       --bg: #f4f6f8;
       --card-bg: #ffffff;
       --text: #333333;
+      --ai-purple: #7b1fa2;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -42,7 +41,8 @@
     button:active { transform: scale(0.98); }
     .btn-secondary { background: #5c6bc0; }
     .btn-warning { background: #ffa726; color: #000; }
-    .btn-cloud { background: #0288d1; }
+    .btn-ai { background: var(--ai-purple); color: white; }
+    .btn-ai:hover { background: #4a148c; }
     
     .container { width: 100%; max-width: 480px; }
     
@@ -82,6 +82,18 @@
     .details p { margin: 8px 0; font-size: 14px; }
     .details strong { color: var(--primary); }
 
+    .mnemonic-box {
+      background: #f3e5f5;
+      border-left: 4px solid var(--ai-purple);
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      text-align: left;
+      font-size: 13px;
+      color: #4a148c;
+      display: none;
+    }
+
     .section-box {
       background: white;
       padding: 15px;
@@ -91,7 +103,7 @@
       border: 1px solid #e0e0e0;
     }
     .section-box h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 8px 10px;
       margin: 5px 0 12px 0;
@@ -99,6 +111,7 @@
       border-radius: 6px;
       box-sizing: border-box;
       font-size: 14px;
+      font-family: inherit;
     }
 
     .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -111,23 +124,23 @@
     .correct { background: #c8e6c9 !important; border-color: #4caf50 !important; }
     .wrong { background: #ffcdd2 !important; border-color: #f44336 !important; }
     
-    .sync-status {
-      font-size: 12px;
+    .loading-spinner {
+      display: none;
+      color: var(--ai-purple);
       font-weight: bold;
-      color: #0288d1;
-      margin-bottom: 10px;
+      font-size: 13px;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
 
   <h1>🌿 LearnCraft</h1>
-  <div id="sync-info" class="sync-status">💾 Sauvegarde locale (Non connecté au Drive)</div>
 
   <div class="nav-btns">
     <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Mes Cours / Cloud</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages & IA</button>
   </div>
 
   <div class="container">
@@ -139,7 +152,7 @@
 
     <!-- FLASHCARD VIEW -->
     <div id="view-flashcard" class="card">
-      <img id="fc-img" class="plant-img" src="" alt="Plante" onerror="this.src='https://via.placeholder.com/400x200?text=Pas+d%27image'">
+      <img id="fc-img" class="plant-img" src="" alt="Plante" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
       <span id="fc-family" class="badge">Famille</span>
       <h2 id="fc-name" style="margin: 5px 0;">Nom</h2>
       <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px;">Nom scientifique</p>
@@ -149,6 +162,9 @@
       <div id="fc-details" class="details">
         <p><strong>🧪 Composition :</strong> <span id="fc-comp"></span></p>
         <p><strong>✨ Propriétés :</strong> <span id="fc-prop"></span></p>
+        
+        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
+        <div id="fc-mnemonic" class="mnemonic-box"></div>
       </div>
 
       <div style="margin-top: 20px; display: flex; justify-content: space-between;">
@@ -161,21 +177,28 @@
     <div id="view-qcm" class="card" style="display: none;">
       <span id="qcm-badge" class="badge">Question QCM</span>
       <h3 id="qcm-question">Quel est le nom scientifique ?</h3>
-      <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://via.placeholder.com/400x200?text=Pas+d%27image'">
+      <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
       <div id="qcm-options" class="qcm-options"></div>
       <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
       <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
-    <!-- GESTIONNAIRE VIEW -->
+    <!-- GESTIONNAIRE & IA VIEW -->
     <div id="view-manager" style="display: none;">
       
-      <!-- SYNCHRO CLOUD -->
-      <div class="section-box">
-        <h3>☁️ Synchronisation Google Drive</h3>
-        <p style="font-size:12px; color:#666;">Connecte ton compte Google pour synchroniser automatiquement PC et téléphone.</p>
-        <button onclick="handleAuthClick()" class="btn-cloud">🔗 Connecter Google Drive</button>
-        <button onclick="syncToDrive()" class="btn-secondary" style="margin-top:5px;">☁️ Forcer la synchronisation</button>
+      <!-- CONFIGURATION API IA -->
+      <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">🔑 Clé API Gemini (IA)</h3>
+        <input type="password" id="api-key-input" placeholder="Colle ta clé API Gemini ici..." onchange="saveApiKey()">
+        <p style="font-size:11px; color:#666; margin: 0;">Obtiens une clé gratuite sur : <code>aistudio.google.com/app/apikey</code></p>
+      </div>
+
+      <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
+      <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA</h3>
+        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil avec nom, latin, famille, composition et propriétés..."></textarea>
+        <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
+        <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
       </div>
 
       <!-- IMPORT CSV LOCAL -->
@@ -203,21 +226,25 @@
   <script>
     let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
       currentNotion: "Plantes Médicinales",
+      apiKey: "",
       notions: {
         "Plantes Médicinales": [
-          { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle", proprietes: "Cicatrisante" }
+          { nom: "Achillée millefeuille", latin: "Achillea millefolium", famille: "Astéracées", image: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80", composition: "Huile essentielle, Flavonoïdes", proprietes: "Cicatrisante, Antispasmodique" }
         ]
       }
     };
 
     let currentIndex = 0;
-    let tokenClient = null;
-    let accessToken = null;
 
     function saveStore() {
       localStorage.setItem('learncraft_db', JSON.stringify(store));
       updateSelectOptions();
-      if(accessToken) syncToDrive();
+    }
+
+    function saveApiKey() {
+      store.apiKey = document.getElementById('api-key-input').value.trim();
+      saveStore();
+      alert("Clé API enregistrée !");
     }
 
     function updateSelectOptions() {
@@ -230,6 +257,7 @@
         if(key === store.currentNotion) opt.selected = true;
         select.appendChild(opt);
       });
+      if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
     }
 
     function changeNotion() {
@@ -254,6 +282,7 @@
       document.getElementById('fc-comp').innerText = p.composition;
       document.getElementById('fc-prop').innerText = p.proprietes;
       document.getElementById('fc-details').style.display = 'none';
+      document.getElementById('fc-mnemonic').style.display = 'none';
     }
 
     function toggleDetails() {
@@ -275,38 +304,93 @@
       renderFlashcard();
     }
 
-    // --- GOOGLE DRIVE SYNC ---
-    function handleAuthClick() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Remplacer par ton ID Client
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: (response) => {
-          if (response.access_token) {
-            accessToken = response.access_token;
-            document.getElementById('sync-info').innerText = "☁️ Connecté à Google Drive";
-            syncFromDrive();
-          }
-        },
-      });
-      tokenClient.requestAccessToken();
+    // --- INTEGRATION IA GEMINI ---
+    async function callGeminiAPI(promptText) {
+      if(!store.apiKey) {
+        alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
+        return null;
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${store.apiKey}`;
+      
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+      } catch (err) {
+        alert("Erreur lors de l'appel à l'IA : " + err.message);
+        return null;
+      }
     }
 
-    async function syncToDrive() {
-      if(!accessToken) return;
-      // Logique d'envoi du JSON vers Google Drive
-      document.getElementById('sync-info').innerText = "🔄 Synchronisation...";
-      setTimeout(() => {
-        document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
-      }, 1000);
+    async function generateMnemonic() {
+      const list = getCurrentList();
+      if(list.length === 0) return;
+      const p = list[currentIndex];
+
+      const box = document.getElementById('fc-mnemonic');
+      box.style.display = 'block';
+      box.innerText = "⚡ L'IA réfléchit à une astuce...";
+
+      const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de la plante '${p.nom}'. Maximum 2 phrases.`;
+      
+      const res = await callGeminiAPI(prompt);
+      if(res) {
+        box.innerText = "💡 Astuce IA : " + res;
+      }
     }
 
-    async function syncFromDrive() {
-      if(!accessToken) return;
-      // Logique de lecture du JSON depuis Google Drive
-      renderFlashcard();
+    async function generateCourseWithAI() {
+      const userPrompt = document.getElementById('ai-prompt-input').value.trim();
+      if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
+
+      document.getElementById('ai-status').style.display = 'block';
+
+      const systemPrompt = `Tu es un assistant de création de cours. Analyse la demande suivante et retourne UNIQUEMENT un tableau JSON valide au format exact suivant, sans texte explicatif ni markdown autour :
+      [
+        {
+          "nom": "Nom commun",
+          "latin": "Nom scientifique",
+          "famille": "Famille",
+          "composition": "Composition",
+          "proprietes": "Propriétés principales"
+        }
+      ]
+      Demande de l'utilisateur : ${userPrompt}`;
+
+      const res = await callGeminiAPI(systemPrompt);
+      document.getElementById('ai-status').style.display = 'none';
+
+      if(res) {
+        try {
+          // Nettoyage au cas où l'IA entoure de ```json ... ```
+          const cleanJson = res.replace(/```json/g, '').replace(/```/g, '').trim();
+          const newItems = JSON.parse(cleanJson);
+          
+          const notionName = "IA - " + userPrompt.substring(0, 20);
+          store.notions[notionName] = newItems.map(item => ({
+            ...item,
+            image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80"
+          }));
+
+          store.currentNotion = notionName;
+          saveStore();
+          alert("Nouveau cours généré avec succès !");
+          switchView('flashcard');
+        } catch(e) {
+          alert("Erreur de formatage de l'IA, réessaie avec une consigne plus simple.");
+        }
+      }
     }
 
-    // --- MANUELLE & CSV ---
+    // --- GESTION MANUELLE & CSV ---
     function addPlantManual() {
       const nom = document.getElementById('add-nom').value.trim();
       if (!nom) return alert("Nom obligatoire !");
