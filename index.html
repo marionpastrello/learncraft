@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Drive, Dossiers & Inspection</title>
+  <title>LearnCraft TDAH - Dossiers & Inspection Complète</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -50,7 +50,7 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: #b71c1c; }
     
-    .container { width: 100%; max-width: 520px; }
+    .container { width: 100%; max-width: 600px; }
     
     .card {
       background: var(--card-bg);
@@ -124,28 +124,44 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px;
+      padding: 10px;
       background: #f9f9f9;
       border: 1px solid #eee;
-      border-radius: 6px;
-      margin-bottom: 6px;
+      border-radius: 8px;
+      margin-bottom: 8px;
       font-size: 13px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .table-scroll-container {
+      max-height: 300px;
+      overflow-x: auto;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-top: 10px;
     }
 
     .preview-table {
       width: 100%;
+      min-width: 700px;
       border-collapse: collapse;
       font-size: 12px;
-      margin-top: 10px;
     }
     .preview-table th, .preview-table td {
       border: 1px solid #e0e0e0;
-      padding: 6px 8px;
+      padding: 8px 10px;
       text-align: left;
+      vertical-align: top;
+      white-space: pre-line;
     }
     .preview-table th {
       background-color: #f0f0f0;
       color: var(--primary);
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
     .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
@@ -171,6 +187,12 @@
       font-weight: bold;
       color: var(--drive-blue);
       margin-bottom: 10px;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
   </style>
 </head>
@@ -230,17 +252,21 @@
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
 
-      <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES (NOUVEAU) -->
+      <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES -->
       <div class="section-box" style="border-left: 4px solid var(--primary);">
-        <h3>📋 Cartes du cours actif</h3>
-        <p style="font-size:12px; color:#666; margin-top:-5px;">Vérifiez ci-dessous le contenu généré ou importé :</p>
-        <div style="max-height: 200px; overflow-y: auto;">
+        <h3>📋 Visualisation complète des cartes du cours</h3>
+        <p style="font-size:12px; color:#666; margin-top:-5px;">Toutes les données du cours sélectionné (défilement horizontal/vertical) :</p>
+        <div class="table-scroll-container">
           <table class="preview-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Nom Scientifique</th>
-                <th>Propriétés</th>
+                <th>Nom commun</th>
+                <th>Nom scientifique</th>
+                <th>Famille</th>
+                <th>Composants actifs</th>
+                <th>Propriétés principales</th>
+                <th>Autres propriétés</th>
+                <th>Risques / CI</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -249,17 +275,24 @@
         </div>
       </div>
 
-      <!-- GESTION DES DOSSIERS & COURS -->
+      <!-- GESTION ET DÉPLACEMENT DANS LES DOSSIERS -->
       <div class="section-box" style="border-left: 4px solid var(--danger);">
-        <h3 style="color: var(--danger);">📂 Organisation des Dossiers & Cours</h3>
+        <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
+        
+        <!-- CRÉATION D'UN DOSSIER -->
+        <div class="flex-row" style="margin-bottom:12px;">
+          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier (ex: Pharmacologie)" style="margin:0;">
+          <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
+        </div>
+
         <div id="courses-list"></div>
       </div>
 
       <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ & SHEET -->
       <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
         <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive & Sheets</h3>
-        <label><strong>Dossier de destination pour l'import :</strong></label>
-        <input type="text" id="target-folder-input" placeholder="Ex: Botanique, Pharmacologie..." value="Général">
+        <label><strong>Ranger l'import dans ce dossier :</strong></label>
+        <select id="import-folder-select" style="margin-bottom:10px;"></select>
 
         <label><strong>ID Client Google Cloud :</strong></label>
         <input type="text" id="client-id-input" placeholder="000000000000-xxx.apps.googleusercontent.com" onchange="saveClientId()">
@@ -300,6 +333,7 @@
       apiKey: "",
       clientId: "",
       sheetId: "",
+      folders: ["Botanique", "Pharmacologie", "Général"],
       coursesMeta: {
         "Plantes Médicinales": { folder: "Botanique" }
       },
@@ -310,6 +344,7 @@
       }
     };
 
+    if(!store.folders) store.folders = ["Botanique", "Général"];
     if(!store.coursesMeta) store.coursesMeta = {};
 
     let currentIndex = 0;
@@ -340,34 +375,68 @@
       saveStore();
     }
 
+    function createNewFolder() {
+      const name = document.getElementById('new-folder-input').value.trim();
+      if(!name) return alert("Saisis un nom de dossier !");
+      if(!store.folders.includes(name)) {
+        store.folders.push(name);
+        document.getElementById('new-folder-input').value = '';
+        saveStore();
+        alert(`Dossier '${name}' créé !`);
+      } else {
+        alert("Ce dossier existe déjà.");
+      }
+    }
+
     function updateSelectOptions() {
       const select = document.getElementById('notion-select');
+      const folderImportSelect = document.getElementById('import-folder-select');
       select.innerHTML = '';
+      folderImportSelect.innerHTML = '';
 
-      // Regroupement par dossiers
-      const folders = {};
-      Object.keys(store.notions).forEach(key => {
-        const folderName = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
-        if(!folders[folderName]) folders[folderName] = [];
-        folders[folderName].push(key);
+      // Mettre à jour le sélecteur de dossier d'import
+      store.folders.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.innerText = f;
+        folderImportSelect.appendChild(opt);
       });
 
-      Object.keys(folders).forEach(folder => {
-        const optgroup = document.createElement('optgroup');
-        optgroup.label = `📁 ${folder}`;
-        folders[folder].forEach(key => {
-          const opt = document.createElement('option');
-          opt.value = key;
-          opt.innerText = `${key} (${store.notions[key].length} cartes)`;
-          if(key === store.currentNotion) opt.selected = true;
-          optgroup.appendChild(opt);
-        });
-        select.appendChild(optgroup);
+      // Regroupement des cours par dossiers
+      const grouped = {};
+      store.folders.forEach(f => grouped[f] = []);
+      grouped["Général"] = grouped["Général"] || [];
+
+      Object.keys(store.notions).forEach(key => {
+        const folderName = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        if(!grouped[folderName]) grouped[folderName] = [];
+        grouped[folderName].push(key);
+      });
+
+      Object.keys(grouped).forEach(folder => {
+        if(grouped[folder].length > 0) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = `📁 ${folder}`;
+          grouped[folder].forEach(key => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.innerText = `${key} (${store.notions[key].length} cartes)`;
+            if(key === store.currentNotion) opt.selected = true;
+            optgroup.appendChild(opt);
+          });
+          select.appendChild(optgroup);
+        }
       });
 
       if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
       if(store.clientId) document.getElementById('client-id-input').value = store.clientId;
       if(store.sheetId) document.getElementById('sheet-id-input').value = store.sheetId;
+    }
+
+    function moveCourseToFolder(courseKey, newFolder) {
+      if(!store.coursesMeta[courseKey]) store.coursesMeta[courseKey] = {};
+      store.coursesMeta[courseKey].folder = newFolder;
+      saveStore();
     }
 
     function renderCoursesList() {
@@ -379,15 +448,25 @@
         return;
       }
       keys.forEach(key => {
-        const folder = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        const currentFolder = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        
+        let folderOptions = store.folders.map(f => 
+          `<option value="${f}" ${f === currentFolder ? 'selected' : ''}>${f}</option>`
+        ).join('');
+
         const div = document.createElement('div');
         div.className = 'course-item';
         div.innerHTML = `
-          <div>
-            <strong>${key}</strong> <span style="font-size:11px; color:#666;">(Dossier: ${folder})</span>
-            <br><span style="font-size:11px; color:#888;">${store.notions[key].length} cartes</span>
+          <div style="flex:1;">
+            <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
           </div>
-          <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️ Supprimer</button>
+          <div class="flex-row">
+            <span style="font-size:11px;">Dossier:</span>
+            <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:2px 4px; font-size:11px; width:auto;">
+              ${folderOptions}
+            </select>
+            <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️ Supprimer</button>
+          </div>
         `;
         container.appendChild(div);
       });
@@ -398,7 +477,7 @@
       tbody.innerHTML = '';
       const list = getCurrentList();
       if(list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
         return;
       }
       list.forEach((item, idx) => {
@@ -406,7 +485,11 @@
         tr.innerHTML = `
           <td><strong>${item.nom || '-'}</strong></td>
           <td><em>${item.latin || '-'}</em></td>
-          <td>${(item.proprietes || '-').substring(0, 30)}...</td>
+          <td>${item.famille || '-'}</td>
+          <td>${item.composition || '-'}</td>
+          <td>${item.proprietes || '-'}</td>
+          <td>${item.autresProp || '-'}</td>
+          <td>${item.risques || '-'}</td>
           <td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>
         `;
         tbody.appendChild(tr);
@@ -541,7 +624,7 @@
 
     async function importGoogleSheet() {
       const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
-      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'Général';
+      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
       if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
       if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
 
@@ -664,7 +747,7 @@
 
     async function generateCourseWithAI() {
       const userPrompt = document.getElementById('ai-prompt-input').value.trim();
-      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'IA';
+      const targetFolder = document.getElementById('import-folder-select').value || 'IA';
       if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
 
       document.getElementById('ai-status').style.display = 'block';
@@ -705,7 +788,7 @@
 
     function importLocalCSV(event) {
       const file = event.target.files[0];
-      const targetFolder = document.getElementById('target-folder-input').value.trim() || 'Général';
+      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
       if (!file) return;
 
       const reader = new FileReader();
