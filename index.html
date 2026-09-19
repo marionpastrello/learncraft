@@ -215,6 +215,7 @@
     <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
     <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & IA</button>
+    <button onclick="switchView('config-volets')" class="btn-warning" style="background:#ff9800; color:#fff;">🎛️ Configurer les volets</button>
   </div>
 
   <div class="container">
@@ -259,24 +260,27 @@
       <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
+    <!-- CONFIGURATION DES VOLETS VIEW -->
+    <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid #ff9800;">
+      <h3 style="color: #ff9800;">🎛️ Personnalisation des volets de révision (Recto/Verso)</h3>
+      <p style="font-size:13px; color:#555;">Coche ou décoche les éléments que tu souhaites afficher sur tes cartes lors de l'entraînement :</p>
+      
+      <div class="checkbox-grid" style="margin: 15px 0;">
+        <label><input type="checkbox" id="vis-img" checked onchange="saveVisibilitySettings()"> 📷 Photo</label>
+        <label><input type="checkbox" id="vis-family" checked onchange="saveVisibilitySettings()"> 🏷️ Famille</label>
+        <label><input type="checkbox" id="vis-name" checked onchange="saveVisibilitySettings()"> 🌿 Nom commun</label>
+        <label><input type="checkbox" id="vis-latin" checked onchange="saveVisibilitySettings()"> 🔬 Nom scientifique</label>
+        <label><input type="checkbox" id="vis-prop" checked onchange="saveVisibilitySettings()"> ✨ Propriétés principales</label>
+        <label><input type="checkbox" id="vis-otherProp" checked onchange="saveVisibilitySettings()"> 📌 Autres propriétés</label>
+        <label><input type="checkbox" id="vis-comp" checked onchange="saveVisibilitySettings()"> 🧪 Composants actifs</label>
+        <label><input type="checkbox" id="vis-risks" checked onchange="saveVisibilitySettings()"> ⚠️ Risques / Contre-indications</label>
+      </div>
+
+      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 10px;">💾 Enregistrer & Retourner aux révisions</button>
+    </div>
+
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
-
-      <!-- CHOIX RECTO / VERSO (PARAMÉTRAGE D'AFFICHAGE) -->
-      <div class="section-box" style="border-left: 4px solid var(--primary);">
-        <h3 style="color: var(--primary);">🎛️ Personnalisation de l'affichage (Recto/Verso)</h3>
-        <p style="font-size:12px; color:#666; margin-top:-5px;">Choisis les caractéristiques à afficher ou masquer pendant tes entraînements :</p>
-        <div class="checkbox-grid">
-          <label><input type="checkbox" id="vis-img" checked onchange="saveVisibilitySettings()"> Photo</label>
-          <label><input type="checkbox" id="vis-family" checked onchange="saveVisibilitySettings()"> Famille</label>
-          <label><input type="checkbox" id="vis-name" checked onchange="saveVisibilitySettings()"> Nom commun</label>
-          <label><input type="checkbox" id="vis-latin" checked onchange="saveVisibilitySettings()"> Nom scientifique</label>
-          <label><input type="checkbox" id="vis-prop" checked onchange="saveVisibilitySettings()"> Propriétés principales</label>
-          <label><input type="checkbox" id="vis-otherProp" checked onchange="saveVisibilitySettings()"> Autres propriétés</label>
-          <label><input type="checkbox" id="vis-comp" checked onchange="saveVisibilitySettings()"> Composants actifs</label>
-          <label><input type="checkbox" id="vis-risks" checked onchange="saveVisibilitySettings()"> Risques / CI</label>
-        </div>
-      </div>
 
       <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES -->
       <div class="section-box" style="border-left: 4px solid var(--primary);">
@@ -812,7 +816,7 @@
       }
     }
 
-    // --- SYSTÈME DE SECOURS AUTOMATIQUE (FALLBACK) POUR L'IA ---
+    // --- SYSTÈME IA ROBUSTE AVEC GESTION DES DÉLAIS DE SATURATION ---
     async function callGeminiAPI(promptText) {
       if(!store.apiKey) {
         alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
@@ -836,7 +840,8 @@
           const data = await response.json();
 
           if (data.error) {
-            console.warn(`Modèle ${model} indisponible, essai suivant...`);
+            console.warn(`Modèle ${model} surchargé, essai du suivant...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
             continue;
           }
 
@@ -844,11 +849,11 @@
             return data.candidates[0].content.parts[0].text;
           }
         } catch (err) {
-          console.error(`Erreur réseau avec le modèle ${model}:`, err);
+          console.error(`Erreur réseau avec ${model}:`, err);
         }
       }
 
-      alert("Tous les modèles Gemini sont actuellement surchargés. Réessaie dans quelques instants !");
+      alert("L'API Gemini est saturée pour le moment. Attends 30 secondes et réessaie !");
       return null;
     }
 
@@ -933,11 +938,15 @@
       document.getElementById('view-flashcard').style.display = view === 'flashcard' ? 'block' : 'none';
       document.getElementById('view-qcm').style.display = view === 'qcm' ? 'block' : 'none';
       document.getElementById('view-manager').style.display = view === 'manager' ? 'block' : 'none';
+      document.getElementById('view-config-volets').style.display = view === 'config-volets' ? 'block' : 'none';
+      
       if(view === 'flashcard') renderFlashcard();
       if(view === 'manager') {
-        loadVisibilityCheckboxes();
         renderCoursesList();
         renderPreviewTable();
+      }
+      if(view === 'config-volets') {
+        loadVisibilityCheckboxes();
       }
     }
 
