@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Recto/Verso par Cours</title>
+  <title>LearnCraft TDAH - Recto/Verso par Cours & Groq AI</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -123,7 +123,7 @@
 
     .checkbox-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 8px;
       font-size: 13px;
       margin-top: 8px;
@@ -228,24 +228,24 @@
 
     <!-- FLASHCARD VIEW -->
     <div id="view-flashcard" class="card">
-      <img id="fc-img" class="plant-img" src="" alt="Plante" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
-      <span id="fc-family" class="badge">Famille</span>
-      <h2 id="fc-name" style="margin: 5px 0;">Nom</h2>
-      <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px;">Nom scientifique</p>
+      <!-- Conteneur dynamique du RECTO -->
+      <div id="recto-container">
+        <img id="fc-img" class="plant-img" src="" alt="Plante" style="display:none;" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
+        <span id="fc-family" class="badge" style="display:none;">Famille</span>
+        <h2 id="fc-name" style="margin: 5px 0; display:none;">Nom</h2>
+        <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px; display:none;">Nom scientifique</p>
+        <p id="fc-prop-recto" style="display:none; font-weight:bold;">Propriétés</p>
+        <p id="fc-otherprop-recto" style="display:none;">Autres prop</p>
+        <p id="fc-comp-recto" style="display:none;">Composants</p>
+        <p id="fc-risks-recto" style="display:none; color:var(--danger);">Risques</p>
+      </div>
       
-      <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer le verso</button>
+      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:15px;">👁️ Afficher / Masquer le verso</button>
       
+      <!-- Conteneur dynamique du VERSO -->
       <div id="fc-details" class="details">
-        <p id="verso-prop-container"><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
-        <p id="verso-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
-        <p id="verso-comp-container"><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
-        <p id="verso-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
-        <p id="verso-img-container" style="display:none;"><img id="verso-img" class="plant-img" style="height:120px; margin-top:8px;" src=""></p>
-        <p id="verso-family-container" style="display:none;"><strong>🏷️ Famille :</strong> <span id="verso-family"></span></p>
-        <p id="verso-name-container" style="display:none;"><strong>🌿 Nom commun :</strong> <span id="verso-name"></span></p>
-        <p id="verso-latin-container" style="display:none;"><strong>🔬 Nom scientifique :</strong> <span id="verso-latin"></span></p>
-
-        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
+        <div id="verso-content-list"></div>
+        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 15px;">✨ 💡 Moyen Mnémotechnique IA</button>
         <div id="fc-mnemonic" class="mnemonic-box"></div>
       </div>
 
@@ -267,13 +267,13 @@
 
     <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
     <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
-      <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour le cours : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> (avant le clic) et ce qui est caché au <strong>Verso</strong> (révélé après le clic).</p>
+      <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
+      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> (avant le clic) et ce qui est caché au <strong>Verso</strong> (révélé après le clic) pour ce cours spécifique.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--primary);">📤 Éléments du RECTO</h4>
-          <div class="checkbox-grid" style="grid-template-columns: 1fr;">
+          <div class="checkbox-grid">
             <label><input type="checkbox" id="recto-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
             <label><input type="checkbox" id="recto-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
             <label><input type="checkbox" id="recto-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
@@ -287,7 +287,7 @@
 
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--warning);">📥 Éléments du VERSO</h4>
-          <div class="checkbox-grid" style="grid-template-columns: 1fr;">
+          <div class="checkbox-grid">
             <label><input type="checkbox" id="verso-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
             <label><input type="checkbox" id="verso-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
             <label><input type="checkbox" id="verso-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
@@ -354,15 +354,16 @@
         <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
       </div>
       
-      <!-- CONFIGURATION API IA -->
+      <!-- CONFIGURATION API GROQ (IA) -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">🔑 Clé API Gemini (IA)</h3>
-        <input type="password" id="api-key-input" placeholder="Colle ta clé API Gemini ici..." onchange="saveApiKey()">
+        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (IA ultra-rapide & sans saturation)</h3>
+        <p style="font-size:12px; color:#666;">Obtiens ta clé gratuite sur <a href="https://console.groq.com" target="_blank">console.groq.com</a></p>
+        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
       </div>
 
       <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA</h3>
+        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA (Groq)</h3>
         <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil..."></textarea>
         <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
         <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
@@ -415,7 +416,6 @@
           verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
         };
       }
-      // Sécurité rétrocompatibilité
       if (!store.coursesMeta[notion].recto) {
         store.coursesMeta[notion].recto = { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false };
       }
@@ -487,7 +487,7 @@
     function saveApiKey() {
       store.apiKey = document.getElementById('api-key-input').value.trim();
       saveStore();
-      alert("Clé API enregistrée !");
+      alert("Clé API Groq enregistrée !");
     }
 
     function saveClientId() {
@@ -664,11 +664,17 @@
       const familyEl = document.getElementById('fc-family');
       const nameEl = document.getElementById('fc-name');
       const latinEl = document.getElementById('fc-latin');
+      const propRecto = document.getElementById('fc-prop-recto');
+      const otherPropRecto = document.getElementById('fc-otherprop-recto');
+      const compRecto = document.getElementById('fc-comp-recto');
+      const risksRecto = document.getElementById('fc-risks-recto');
 
       if (list.length === 0) {
+        nameEl.style.display = 'block';
         nameEl.innerText = "Aucune carte";
-        latinEl.innerText = "";
-        familyEl.innerText = "-";
+        latinEl.style.display = 'none';
+        familyEl.style.display = 'none';
+        imgEl.style.display = 'none';
         return;
       }
 
@@ -679,34 +685,24 @@
       if (recto.family && p.famille) { familyEl.style.display = 'inline-block'; familyEl.innerText = p.famille; } else { familyEl.style.display = 'none'; }
       if (recto.name && p.nom) { nameEl.style.display = 'block'; nameEl.innerText = p.nom; } else { nameEl.style.display = 'none'; }
       if (recto.latin && p.latin) { latinEl.style.display = 'block'; latinEl.innerText = p.latin; } else { latinEl.style.display = 'none'; }
+      
+      if (recto.prop && p.proprietes) { propRecto.style.display = 'block'; propRecto.innerText = "✨ " + p.proprietes; } else { propRecto.style.display = 'none'; }
+      if (recto.otherProp && p.autresProp) { otherPropRecto.style.display = 'block'; otherPropRecto.innerText = "📌 " + p.autresProp; } else { otherPropRecto.style.display = 'none'; }
+      if (recto.comp && p.composition) { compRecto.style.display = 'block'; compRecto.innerText = "🧪 " + p.composition; } else { compRecto.style.display = 'none'; }
+      if (recto.risks && p.risques) { risksRecto.style.display = 'block'; risksRecto.innerText = "⚠️ " + p.risques; } else { risksRecto.style.display = 'none'; }
 
       // --- RENDU DU VERSO ---
-      document.getElementById('verso-prop-container').style.display = verso.prop ? 'block' : 'none';
-      document.getElementById('fc-prop').innerText = p.proprietes || 'N/A';
+      let versoHTML = '';
+      if (verso.img && p.image) versoHTML += `<p><img src="${p.image}" class="plant-img" style="height:120px;"></p>`;
+      if (verso.family && p.famille) versoHTML += `<p><strong>🏷️ Famille :</strong> ${p.famille}</p>`;
+      if (verso.name && p.nom) versoHTML += `<p><strong>🌿 Nom commun :</strong> ${p.nom}</p>`;
+      if (verso.latin && p.latin) versoHTML += `<p><strong>🔬 Nom scientifique :</strong> <em>${p.latin}</em></p>`;
+      if (verso.prop && p.proprietes) versoHTML += `<p><strong>✨ Propriétés principales :</strong> ${p.proprietes}</p>`;
+      if (verso.otherProp && p.autresProp) versoHTML += `<p><strong>📌 Autres propriétés :</strong> ${p.autresProp}</p>`;
+      if (verso.comp && p.composition) versoHTML += `<p><strong>🧪 Composants actifs :</strong> ${p.composition}</p>`;
+      if (verso.risks && p.risques) versoHTML += `<p style="color:var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> ${p.risques}</p>`;
 
-      if(verso.otherProp && p.autresProp) {
-        document.getElementById('verso-other-prop-container').style.display = 'block';
-        document.getElementById('fc-other-prop').innerText = p.autresProp;
-      } else {
-        document.getElementById('verso-other-prop-container').style.display = 'none';
-      }
-
-      document.getElementById('verso-comp-container').style.display = verso.comp ? 'block' : 'none';
-      document.getElementById('fc-comp').innerText = p.composition || 'N/A';
-
-      if(verso.risks && p.risques) {
-        document.getElementById('verso-risk-container').style.display = 'block';
-        document.getElementById('fc-risk').innerText = p.risques;
-      } else {
-        document.getElementById('verso-risk-container').style.display = 'none';
-      }
-
-      // Éléments optionnels additionnels au verso si cochés
-      if (verso.img && p.image) { document.getElementById('verso-img-container').style.display = 'block'; document.getElementById('verso-img').src = p.image; } else { document.getElementById('verso-img-container').style.display = 'none'; }
-      if (verso.family && p.famille) { document.getElementById('verso-family-container').style.display = 'block'; document.getElementById('verso-family').innerText = p.famille; } else { document.getElementById('verso-family-container').style.display = 'none'; }
-      if (verso.name && p.nom) { document.getElementById('verso-name-container').style.display = 'block'; document.getElementById('verso-name').innerText = p.nom; } else { document.getElementById('verso-name-container').style.display = 'none'; }
-      if (verso.latin && p.latin) { document.getElementById('verso-latin-container').style.display = 'block'; document.getElementById('verso-latin').innerText = p.latin; } else { document.getElementById('verso-latin-container').style.display = 'none'; }
-
+      document.getElementById('verso-content-list').innerHTML = versoHTML;
       document.getElementById('fc-details').style.display = 'none';
       document.getElementById('fc-mnemonic').style.display = 'none';
     }
@@ -871,44 +867,41 @@
       }
     }
 
-    // --- SYSTÈME IA ROBUSTE AVEC GESTION DES DÉLAIS DE SATURATION ---
-    async function callGeminiAPI(promptText) {
+    // --- APPEL API GROQ (RAPIDE & SANS SATURATION) ---
+    async function callGroqAPI(promptText) {
       if(!store.apiKey) {
-        alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
+        alert("Pense à configurer ta clé API Groq dans l'onglet Réglages !");
         return null;
       }
 
-      const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+      const url = "https://api.groq.com/openai/v1/chat/completions";
       
-      for (let model of models) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${store.apiKey}`;
-        
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: promptText }] }]
-            })
-          });
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + store.apiKey
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "user", content: promptText }]
+          })
+        });
 
-          const data = await response.json();
+        const data = await response.json();
 
-          if (data.error) {
-            console.warn(`Modèle ${model} surchargé, essai du suivant...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            continue;
-          }
-
-          if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-          }
-        } catch (err) {
-          console.error(`Erreur réseau avec ${model}:`, err);
+        if (data.error) {
+          alert(`Erreur API Groq : ${data.error.message}`);
+          return null;
         }
-      }
 
-      alert("L'API Gemini est saturée pour le moment. Attends 30 secondes et réessaie !");
+        if (data.choices && data.choices.length > 0) {
+          return data.choices[0].message.content;
+        }
+      } catch (err) {
+        alert("Erreur réseau avec Groq : " + err.message);
+      }
       return null;
     }
 
@@ -923,7 +916,7 @@
 
       const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de la plante '${p.nom}'. Maximum 2 phrases.`;
       
-      const res = await callGeminiAPI(prompt);
+      const res = await callGroqAPI(prompt);
       if(res) {
         box.innerText = "💡 Astuce IA : " + res;
       }
@@ -948,7 +941,7 @@
       ]
       Demande de l'utilisateur : ${userPrompt}`;
 
-      const res = await callGeminiAPI(systemPrompt);
+      const res = await callGroqAPI(systemPrompt);
       document.getElementById('ai-status').style.display = 'none';
 
       if(res) {
