@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LearnCraft TDAH - Révisions, Google Drive & IA</title>
   
-  <!-- SDK Google Identity Services -->
+  <!-- SDKs Google OAuth2 et Google Picker -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-
+  <script src="https://apis.google.com/js/api.js" async defer></script>
   <style>
     /* ==========================================
        1. VARIABLES GLOBALES & CHARTE GRAPHIQUE
@@ -566,11 +566,21 @@
 
     </div>
 
-    <!-- ==========================================
-       VUE 5 : GESTIONNAIRE, GOOGLE DRIVE, GOOGLE SHEET, CSV & AJOUT MANUEL
-       ========================================== -->
-    <div id="view-manager" style="display: none;">
-
+    <!-- GOOGLE DRIVE & GOOGLE SHEETS (MODE PRIVÉ) -->
+      <div class="section-box" style="border-left: 5px solid var(--drive-blue);">
+        <h3 style="color: var(--drive-blue);">☁️ Intégration Google Drive (Mode Privé)</h3>
+        <p style="font-size:13px; color:#555; margin-top:0;">Connectez votre compte Google pour sélectionner et importer directement vos fichiers Google Sheets privés.</p>
+        
+        <div class="flex-row" style="margin-bottom:12px;">
+          <button id="btn-gdrive-login" onclick="handleGoogleAuth()" class="btn-drive" style="flex:1;">👤 Se connecter à Google Drive</button>
+        </div>
+        
+        <div id="gdrive-actions" style="display:none;">
+          <label><strong>Sélectionner un fichier Google Sheet privé :</strong></label>
+          <button onclick="openGooglePicker()" class="btn-secondary" style="width:100%; margin-top:6px;">📂 Ouvrir mon Google Drive</button>
+        </div>
+      </div>
+    
       <!-- CONFIGURATION API GROQ -->
       <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Optionnel - Pour l'IA)</h3>
@@ -847,36 +857,88 @@
     /* ==========================================
        6. CONNEXION GOOGLE & IMPORT GOOGLE SHEET
        ========================================== */
-    function connectGoogleAccount() {
-      alert("👤 Authentification Google : Vous êtes connecté via les services Google Identity ! Seuls les fichiers Google Sheets enregistrés sous format public ou partagé peuvent être chargés.");
-    }
+   /* ==========================================
+       6. CONNEXION GOOGLE DRIVE PRIVÉ & PICKER
+       ========================================== */
+    // ⚠️ Remplace par ton Client ID Google Cloud Console
+    const GOOGLE_CLIENT_ID = "205291388940-8eerdjlort343tg61f7104eu2u1aiasr.apps.googleusercontent.com.apps.googleusercontent.com";
+    const SCOPES = "https://www.googleapis.com/auth/drive.readonly";
 
-    function handleCredentialResponse(response) {
-      const syncInfo = document.getElementById('sync-info');
-      if (syncInfo) syncInfo.innerText = "☁️ Google Account Connecté";
-      alert("Connexion réussie avec votre compte Google !");
-    }
+    let tokenClient = null;
+    let accessToken = null;
 
-    async function importGoogleSheetUrl() {
-      let urlInput = document.getElementById('gdrive-url-input');
-      if (!urlInput) return;
-      let url = urlInput.value.trim();
+    // Initialisation des SDKs Google
+    window.onload = function() {
+      if (window.gapi) {
+        gapi.load('picker', () => console.log('Google Picker chargé.'));
+      }
       
-      if (!url) {
-        alert("Veuillez coller une URL Google Sheet valide.");
+      if (window.google) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: SCOPES,
+          callback: (response) => {
+            if (response.error !== undefined) {
+              alert("Erreur d'authentification Google : " + response.error);
+              return;
+            }
+            accessToken = response.access_token;
+            document.getElementById('sync-info').innerText = "☁️ Google Drive Connecté (Mode Privé)";
+            document.getElementById('gdrive-actions').style.display = 'block';
+            document.getElementById('btn-gdrive-login').innerText = "✅ Connecté à Google";
+          },
+        });
+      }
+    };
+
+    function handleGoogleAuth() {
+      if (!tokenClient) {
+        alert("Les services Google sont encore en cours de chargement. Réessaie dans un instant.");
         return;
       }
-      
-      if (url.includes('/edit')) {
-        url = url.replace(/\/edit.*$/, '/export?format=csv');
+      // Demande d'autorisation d'accès aux fichiers Drive
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    function openGooglePicker() {
+      if (!accessToken) {
+        alert("Veuillez d'abord vous connecter à votre compte Google.");
+        return;
       }
 
-      try {
-        const response = await fetch(url);
-        const text = await response.text();
-        processCSVImport(text, "GoogleSheet_Cours");
-      } catch (e) {
-        alert("⚠️ Impossible d'importer le Google Sheet. Assurez-vous que le lien est accessible avec l'option 'Tous les utilisateurs disposant du lien'.");
+      // Création de la vue filtrée pour les Google Sheets uniquement
+      const view = new google.picker.View(google.picker.ViewId.SPREADSHEETS);
+      
+      const picker = new google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(accessToken)
+        .setCallback(pickerCallback)
+        .build();
+
+      picker.setVisible(true);
+    }
+
+    async function pickerCallback(data) {
+      if (data.action === google.picker.Action.PICKED) {
+        const doc = data.documents[0];
+        const fileId = doc.id;
+        const fileName = doc.name;
+
+        // Téléchargement sécurisé du fichier privé au format CSV via l'API Drive
+        try {
+          const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/csv`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          });
+
+          if (!response.ok) throw new Error("Impossible d'exporter le fichier Google Sheet.");
+
+          const csvText = await response.text();
+          processCSVImport(csvText, fileName);
+        } catch (error) {
+          alert("⚠️ Erreur lors du chargement du fichier privé : " + error.message);
+        }
       }
     }
 
