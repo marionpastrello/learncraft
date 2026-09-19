@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Monographies & Photos</title>
+  <title>LearnCraft TDAH - Monographies & Personnalisation Recto/Verso</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -120,6 +120,24 @@
       font-family: inherit;
     }
 
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .checkbox-grid label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .checkbox-grid input {
+      width: auto;
+      margin: 0;
+    }
+
     .course-item {
       display: flex;
       justify-content: space-between;
@@ -216,9 +234,9 @@
       <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer la réponse</button>
       
       <div id="fc-details" class="details">
-        <p><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
+        <p id="prop-container"><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
         <p id="fc-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
-        <p><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
+        <p id="comp-container"><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
         <p id="fc-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
         
         <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
@@ -244,10 +262,25 @@
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
 
+      <!-- CHOIX RECTO / VERSO (PARAMÉTRAGE D'AFFICHAGE) -->
+      <div class="section-box" style="border-left: 4px solid var(--primary);">
+        <h3 style="color: var(--primary);">🎛️ Personnalisation de l'affichage (Recto/Verso)</h3>
+        <p style="font-size:12px; color:#666; margin-top:-5px;">Choisis les caractéristiques à afficher ou masquer pendant tes entraînements :</p>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" id="vis-img" checked onchange="saveVisibilitySettings()"> Photo</label>
+          <label><input type="checkbox" id="vis-family" checked onchange="saveVisibilitySettings()"> Famille</label>
+          <label><input type="checkbox" id="vis-name" checked onchange="saveVisibilitySettings()"> Nom commun</label>
+          <label><input type="checkbox" id="vis-latin" checked onchange="saveVisibilitySettings()"> Nom scientifique</label>
+          <label><input type="checkbox" id="vis-prop" checked onchange="saveVisibilitySettings()"> Propriétés principales</label>
+          <label><input type="checkbox" id="vis-otherProp" checked onchange="saveVisibilitySettings()"> Autres propriétés</label>
+          <label><input type="checkbox" id="vis-comp" checked onchange="saveVisibilitySettings()"> Composants actifs</label>
+          <label><input type="checkbox" id="vis-risks" checked onchange="saveVisibilitySettings()"> Risques / CI</label>
+        </div>
+      </div>
+
       <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES -->
       <div class="section-box" style="border-left: 4px solid var(--primary);">
         <h3>📋 Visualisation complète des cartes du cours</h3>
-        <p style="font-size:12px; color:#666; margin-top:-5px;">Toutes les données du cours sélectionné :</p>
         <div class="table-scroll-container">
           <table class="preview-table">
             <thead>
@@ -271,12 +304,10 @@
       <!-- GESTION ET DÉPLACEMENT DANS LES DOSSIERS -->
       <div class="section-box" style="border-left: 4px solid var(--danger);">
         <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
-        
         <div class="flex-row" style="margin-bottom:12px;">
           <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier (ex: Pharmacologie)" style="margin:0;">
           <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
         </div>
-
         <div id="courses-list"></div>
       </div>
 
@@ -326,6 +357,7 @@
       clientId: "",
       sheetId: "",
       folders: ["Botanique", "Pharmacologie", "Général"],
+      visibility: { img: true, family: true, name: true, latin: true, prop: true, otherProp: true, comp: true, risks: true },
       coursesMeta: {
         "Plantes Médicinales": { folder: "Botanique" }
       },
@@ -338,6 +370,7 @@
 
     if(!store.folders) store.folders = ["Botanique", "Général"];
     if(!store.coursesMeta) store.coursesMeta = {};
+    if(!store.visibility) store.visibility = { img: true, family: true, name: true, latin: true, prop: true, otherProp: true, comp: true, risks: true };
 
     let currentIndex = 0;
     let accessToken = null;
@@ -349,6 +382,33 @@
       renderCoursesList();
       renderPreviewTable();
       if(accessToken) syncToDrive();
+    }
+
+    function saveVisibilitySettings() {
+      store.visibility = {
+        img: document.getElementById('vis-img').checked,
+        family: document.getElementById('vis-family').checked,
+        name: document.getElementById('vis-name').checked,
+        latin: document.getElementById('vis-latin').checked,
+        prop: document.getElementById('vis-prop').checked,
+        otherProp: document.getElementById('vis-otherProp').checked,
+        comp: document.getElementById('vis-comp').checked,
+        risks: document.getElementById('vis-risks').checked
+      };
+      saveStore();
+      renderFlashcard();
+    }
+
+    function loadVisibilityCheckboxes() {
+      if(!store.visibility) return;
+      document.getElementById('vis-img').checked = store.visibility.img;
+      document.getElementById('vis-family').checked = store.visibility.family;
+      document.getElementById('vis-name').checked = store.visibility.name;
+      document.getElementById('vis-latin').checked = store.visibility.latin;
+      document.getElementById('vis-prop').checked = store.visibility.prop;
+      document.getElementById('vis-otherProp').checked = store.visibility.otherProp;
+      document.getElementById('vis-comp').checked = store.visibility.comp;
+      document.getElementById('vis-risks').checked = store.visibility.risks;
     }
 
     function saveApiKey() {
@@ -523,30 +583,65 @@
 
     function renderFlashcard() {
       const list = getCurrentList();
+      const vis = store.visibility;
+      const imgEl = document.getElementById('fc-img');
+      const familyEl = document.getElementById('fc-family');
+      const nameEl = document.getElementById('fc-name');
+      const latinEl = document.getElementById('fc-latin');
+
       if (list.length === 0) {
-        document.getElementById('fc-name').innerText = "Aucune carte";
-        document.getElementById('fc-latin').innerText = "";
-        document.getElementById('fc-family').innerText = "-";
-        document.getElementById('fc-comp').innerText = "-";
-        document.getElementById('fc-prop').innerText = "-";
+        nameEl.innerText = "Aucune carte";
+        latinEl.innerText = "";
+        familyEl.innerText = "-";
         return;
       }
+
       const p = list[currentIndex];
-      document.getElementById('fc-name').innerText = p.nom || '';
-      document.getElementById('fc-latin').innerText = p.latin || '';
-      document.getElementById('fc-family').innerText = p.famille || 'Général';
-      document.getElementById('fc-img').src = p.image || '';
-      document.getElementById('fc-comp').innerText = p.composition || 'N/A';
+
+      // Application des règles de visibilité (Recto/Verso)
+      if (vis.img && p.image) {
+        imgEl.style.display = 'block';
+        imgEl.src = p.image;
+      } else {
+        imgEl.style.display = 'none';
+      }
+
+      if (vis.family && p.famille) {
+        familyEl.style.display = 'inline-block';
+        familyEl.innerText = p.famille;
+      } else {
+        familyEl.style.display = 'none';
+      }
+
+      if (vis.name && p.nom) {
+        nameEl.style.display = 'block';
+        nameEl.innerText = p.nom;
+      } else {
+        nameEl.style.display = 'none';
+      }
+
+      if (vis.latin && p.latin) {
+        latinEl.style.display = 'block';
+        latinEl.innerText = p.latin;
+      } else {
+        latinEl.style.display = 'none';
+      }
+
+      // Détails de la réponse
+      document.getElementById('prop-container').style.display = vis.prop ? 'block' : 'none';
       document.getElementById('fc-prop').innerText = p.proprietes || 'N/A';
 
-      if(p.autresProp) {
+      if(vis.otherProp && p.autresProp) {
         document.getElementById('fc-other-prop-container').style.display = 'block';
         document.getElementById('fc-other-prop').innerText = p.autresProp;
       } else {
         document.getElementById('fc-other-prop-container').style.display = 'none';
       }
 
-      if(p.risques) {
+      document.getElementById('comp-container').style.display = vis.comp ? 'block' : 'none';
+      document.getElementById('fc-comp').innerText = p.composition || 'N/A';
+
+      if(vis.risks && p.risques) {
         document.getElementById('fc-risk-container').style.display = 'block';
         document.getElementById('fc-risk').innerText = p.risques;
       } else {
@@ -724,7 +819,6 @@
         return null;
       }
 
-      // Liste de plusieurs modèles de secours testés successivement en cas de surcharge (High Demand)
       const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
       
       for (let model of models) {
@@ -742,8 +836,8 @@
           const data = await response.json();
 
           if (data.error) {
-            console.warn(`Modèle ${model} indisponible ou surchargé (${data.error.message}), essai suivant...`);
-            continue; // Passe au modèle suivant de la liste
+            console.warn(`Modèle ${model} indisponible, essai suivant...`);
+            continue;
           }
 
           if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
@@ -754,7 +848,7 @@
         }
       }
 
-      alert("Tous les modèles Gemini sont actuellement surchargés ou indisponibles. Réessaie dans quelques instants !");
+      alert("Tous les modèles Gemini sont actuellement surchargés. Réessaie dans quelques instants !");
       return null;
     }
 
@@ -841,11 +935,13 @@
       document.getElementById('view-manager').style.display = view === 'manager' ? 'block' : 'none';
       if(view === 'flashcard') renderFlashcard();
       if(view === 'manager') {
+        loadVisibilityCheckboxes();
         renderCoursesList();
         renderPreviewTable();
       }
     }
 
+    loadVisibilityCheckboxes();
     updateSelectOptions();
     renderCoursesList();
     renderPreviewTable();
