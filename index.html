@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Monographies & Personnalisation Recto/Verso</title>
+  <title>LearnCraft TDAH - Recto/Verso par Cours</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -15,6 +15,7 @@
       --ai-purple: #7b1fa2;
       --drive-blue: #1565c0;
       --danger: #d32f2f;
+      --warning: #ff9800;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -43,7 +44,7 @@
     button:hover { background: #1b5e20; }
     button:active { transform: scale(0.98); }
     .btn-secondary { background: #5c6bc0; }
-    .btn-warning { background: #ffa726; color: #000; }
+    .btn-warning { background: var(--warning); color: #fff; }
     .btn-ai { background: var(--ai-purple); color: white; }
     .btn-ai:hover { background: #4a148c; }
     .btn-drive { background: var(--drive-blue); color: white; }
@@ -215,7 +216,7 @@
     <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
     <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & IA</button>
-    <button onclick="switchView('config-volets')" class="btn-warning" style="background:#ff9800; color:#fff;">🎛️ Configurer les volets</button>
+    <button onclick="switchView('config-volets')" class="btn-warning">🎛️ Configurer Recto / Verso</button>
   </div>
 
   <div class="container">
@@ -232,14 +233,18 @@
       <h2 id="fc-name" style="margin: 5px 0;">Nom</h2>
       <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px;">Nom scientifique</p>
       
-      <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer la réponse</button>
+      <button onclick="toggleDetails()" class="btn-warning">👁️ Afficher / Masquer le verso</button>
       
       <div id="fc-details" class="details">
-        <p id="prop-container"><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
-        <p id="fc-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
-        <p id="comp-container"><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
-        <p id="fc-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
-        
+        <p id="verso-prop-container"><strong>✨ Propriétés principales :</strong> <span id="fc-prop"></span></p>
+        <p id="verso-other-prop-container" style="display:none;"><strong>📌 Autres propriétés :</strong> <span id="fc-other-prop"></span></p>
+        <p id="verso-comp-container"><strong>🧪 Composants actifs :</strong> <span id="fc-comp"></span></p>
+        <p id="verso-risk-container" style="display:none; color: var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> <span id="fc-risk"></span></p>
+        <p id="verso-img-container" style="display:none;"><img id="verso-img" class="plant-img" style="height:120px; margin-top:8px;" src=""></p>
+        <p id="verso-family-container" style="display:none;"><strong>🏷️ Famille :</strong> <span id="verso-family"></span></p>
+        <p id="verso-name-container" style="display:none;"><strong>🌿 Nom commun :</strong> <span id="verso-name"></span></p>
+        <p id="verso-latin-container" style="display:none;"><strong>🔬 Nom scientifique :</strong> <span id="verso-latin"></span></p>
+
         <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 10px;">✨ 💡 Moyen Mnémotechnique IA</button>
         <div id="fc-mnemonic" class="mnemonic-box"></div>
       </div>
@@ -260,23 +265,42 @@
       <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
-    <!-- CONFIGURATION DES VOLETS VIEW -->
-    <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid #ff9800;">
-      <h3 style="color: #ff9800;">🎛️ Personnalisation des volets de révision (Recto/Verso)</h3>
-      <p style="font-size:13px; color:#555;">Coche ou décoche les éléments que tu souhaites afficher sur tes cartes lors de l'entraînement :</p>
+    <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
+    <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
+      <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour le cours : <span id="config-course-title" style="color:var(--primary);"></span></h3>
+      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> (avant le clic) et ce qui est caché au <strong>Verso</strong> (révélé après le clic).</p>
       
-      <div class="checkbox-grid" style="margin: 15px 0;">
-        <label><input type="checkbox" id="vis-img" checked onchange="saveVisibilitySettings()"> 📷 Photo</label>
-        <label><input type="checkbox" id="vis-family" checked onchange="saveVisibilitySettings()"> 🏷️ Famille</label>
-        <label><input type="checkbox" id="vis-name" checked onchange="saveVisibilitySettings()"> 🌿 Nom commun</label>
-        <label><input type="checkbox" id="vis-latin" checked onchange="saveVisibilitySettings()"> 🔬 Nom scientifique</label>
-        <label><input type="checkbox" id="vis-prop" checked onchange="saveVisibilitySettings()"> ✨ Propriétés principales</label>
-        <label><input type="checkbox" id="vis-otherProp" checked onchange="saveVisibilitySettings()"> 📌 Autres propriétés</label>
-        <label><input type="checkbox" id="vis-comp" checked onchange="saveVisibilitySettings()"> 🧪 Composants actifs</label>
-        <label><input type="checkbox" id="vis-risks" checked onchange="saveVisibilitySettings()"> ⚠️ Risques / Contre-indications</label>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
+          <h4 style="margin-top:0; color:var(--primary);">📤 Éléments du RECTO</h4>
+          <div class="checkbox-grid" style="grid-template-columns: 1fr;">
+            <label><input type="checkbox" id="recto-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
+            <label><input type="checkbox" id="recto-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
+            <label><input type="checkbox" id="recto-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
+            <label><input type="checkbox" id="recto-latin" onchange="saveCurrentCourseConfig()"> 🔬 Nom scientifique</label>
+            <label><input type="checkbox" id="recto-prop" onchange="saveCurrentCourseConfig()"> ✨ Propriétés principales</label>
+            <label><input type="checkbox" id="recto-otherProp" onchange="saveCurrentCourseConfig()"> 📌 Autres propriétés</label>
+            <label><input type="checkbox" id="recto-comp" onchange="saveCurrentCourseConfig()"> 🧪 Composants actifs</label>
+            <label><input type="checkbox" id="recto-risks" onchange="saveCurrentCourseConfig()"> ⚠️ Risques / CI</label>
+          </div>
+        </div>
+
+        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
+          <h4 style="margin-top:0; color:var(--warning);">📥 Éléments du VERSO</h4>
+          <div class="checkbox-grid" style="grid-template-columns: 1fr;">
+            <label><input type="checkbox" id="verso-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
+            <label><input type="checkbox" id="verso-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
+            <label><input type="checkbox" id="verso-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
+            <label><input type="checkbox" id="verso-latin" onchange="saveCurrentCourseConfig()"> 🔬 Nom scientifique</label>
+            <label><input type="checkbox" id="verso-prop" onchange="saveCurrentCourseConfig()"> ✨ Propriétés principales</label>
+            <label><input type="checkbox" id="verso-otherProp" onchange="saveCurrentCourseConfig()"> 📌 Autres propriétés</label>
+            <label><input type="checkbox" id="verso-comp" onchange="saveCurrentCourseConfig()"> 🧪 Composants actifs</label>
+            <label><input type="checkbox" id="verso-risks" onchange="saveCurrentCourseConfig()"> ⚠️ Risques / CI</label>
+          </div>
+        </div>
       </div>
 
-      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 10px;">💾 Enregistrer & Retourner aux révisions</button>
+      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 15px;">💾 Enregistrer & Retourner aux révisions</button>
     </div>
 
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
@@ -361,9 +385,12 @@
       clientId: "",
       sheetId: "",
       folders: ["Botanique", "Pharmacologie", "Général"],
-      visibility: { img: true, family: true, name: true, latin: true, prop: true, otherProp: true, comp: true, risks: true },
       coursesMeta: {
-        "Plantes Médicinales": { folder: "Botanique" }
+        "Plantes Médicinales": { 
+          folder: "Botanique",
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+        }
       },
       notions: {
         "Plantes Médicinales": [
@@ -374,11 +401,29 @@
 
     if(!store.folders) store.folders = ["Botanique", "Général"];
     if(!store.coursesMeta) store.coursesMeta = {};
-    if(!store.visibility) store.visibility = { img: true, family: true, name: true, latin: true, prop: true, otherProp: true, comp: true, risks: true };
 
     let currentIndex = 0;
     let accessToken = null;
     let driveFileId = null;
+
+    function getActiveConfig() {
+      const notion = store.currentNotion;
+      if (!store.coursesMeta[notion]) {
+        store.coursesMeta[notion] = {
+          folder: "Général",
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+        };
+      }
+      // Sécurité rétrocompatibilité
+      if (!store.coursesMeta[notion].recto) {
+        store.coursesMeta[notion].recto = { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false };
+      }
+      if (!store.coursesMeta[notion].verso) {
+        store.coursesMeta[notion].verso = { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true };
+      }
+      return store.coursesMeta[notion];
+    }
 
     function saveStore() {
       localStorage.setItem('learncraft_db', JSON.stringify(store));
@@ -388,31 +433,55 @@
       if(accessToken) syncToDrive();
     }
 
-    function saveVisibilitySettings() {
-      store.visibility = {
-        img: document.getElementById('vis-img').checked,
-        family: document.getElementById('vis-family').checked,
-        name: document.getElementById('vis-name').checked,
-        latin: document.getElementById('vis-latin').checked,
-        prop: document.getElementById('vis-prop').checked,
-        otherProp: document.getElementById('vis-otherProp').checked,
-        comp: document.getElementById('vis-comp').checked,
-        risks: document.getElementById('vis-risks').checked
+    function saveCurrentCourseConfig() {
+      const cfg = getActiveConfig();
+      cfg.recto = {
+        img: document.getElementById('recto-img').checked,
+        family: document.getElementById('recto-family').checked,
+        name: document.getElementById('recto-name').checked,
+        latin: document.getElementById('recto-latin').checked,
+        prop: document.getElementById('recto-prop').checked,
+        otherProp: document.getElementById('recto-otherProp').checked,
+        comp: document.getElementById('recto-comp').checked,
+        risks: document.getElementById('recto-risks').checked
+      };
+      cfg.verso = {
+        img: document.getElementById('verso-img').checked,
+        family: document.getElementById('verso-family').checked,
+        name: document.getElementById('verso-name').checked,
+        latin: document.getElementById('verso-latin').checked,
+        prop: document.getElementById('verso-prop').checked,
+        otherProp: document.getElementById('verso-otherProp').checked,
+        comp: document.getElementById('verso-comp').checked,
+        risks: document.getElementById('verso-risks').checked
       };
       saveStore();
       renderFlashcard();
     }
 
-    function loadVisibilityCheckboxes() {
-      if(!store.visibility) return;
-      document.getElementById('vis-img').checked = store.visibility.img;
-      document.getElementById('vis-family').checked = store.visibility.family;
-      document.getElementById('vis-name').checked = store.visibility.name;
-      document.getElementById('vis-latin').checked = store.visibility.latin;
-      document.getElementById('vis-prop').checked = store.visibility.prop;
-      document.getElementById('vis-otherProp').checked = store.visibility.otherProp;
-      document.getElementById('vis-comp').checked = store.visibility.comp;
-      document.getElementById('vis-risks').checked = store.visibility.risks;
+    function loadConfigCheckboxes() {
+      const cfg = getActiveConfig();
+      document.getElementById('config-course-title').innerText = store.currentNotion;
+      
+      // Recto
+      document.getElementById('recto-img').checked = cfg.recto.img;
+      document.getElementById('recto-family').checked = cfg.recto.family;
+      document.getElementById('recto-name').checked = cfg.recto.name;
+      document.getElementById('recto-latin').checked = cfg.recto.latin;
+      document.getElementById('recto-prop').checked = cfg.recto.prop;
+      document.getElementById('recto-otherProp').checked = cfg.recto.otherProp;
+      document.getElementById('recto-comp').checked = cfg.recto.comp;
+      document.getElementById('recto-risks').checked = cfg.recto.risks;
+
+      // Verso
+      document.getElementById('verso-img').checked = cfg.verso.img;
+      document.getElementById('verso-family').checked = cfg.verso.family;
+      document.getElementById('verso-name').checked = cfg.verso.name;
+      document.getElementById('verso-latin').checked = cfg.verso.latin;
+      document.getElementById('verso-prop').checked = cfg.verso.prop;
+      document.getElementById('verso-otherProp').checked = cfg.verso.otherProp;
+      document.getElementById('verso-comp').checked = cfg.verso.comp;
+      document.getElementById('verso-risks').checked = cfg.verso.risks;
     }
 
     function saveApiKey() {
@@ -587,7 +656,10 @@
 
     function renderFlashcard() {
       const list = getCurrentList();
-      const vis = store.visibility;
+      const cfg = getActiveConfig();
+      const recto = cfg.recto;
+      const verso = cfg.verso;
+
       const imgEl = document.getElementById('fc-img');
       const familyEl = document.getElementById('fc-family');
       const nameEl = document.getElementById('fc-name');
@@ -602,55 +674,38 @@
 
       const p = list[currentIndex];
 
-      // Application des règles de visibilité (Recto/Verso)
-      if (vis.img && p.image) {
-        imgEl.style.display = 'block';
-        imgEl.src = p.image;
-      } else {
-        imgEl.style.display = 'none';
-      }
+      // --- RENDU DU RECTO ---
+      if (recto.img && p.image) { imgEl.style.display = 'block'; imgEl.src = p.image; } else { imgEl.style.display = 'none'; }
+      if (recto.family && p.famille) { familyEl.style.display = 'inline-block'; familyEl.innerText = p.famille; } else { familyEl.style.display = 'none'; }
+      if (recto.name && p.nom) { nameEl.style.display = 'block'; nameEl.innerText = p.nom; } else { nameEl.style.display = 'none'; }
+      if (recto.latin && p.latin) { latinEl.style.display = 'block'; latinEl.innerText = p.latin; } else { latinEl.style.display = 'none'; }
 
-      if (vis.family && p.famille) {
-        familyEl.style.display = 'inline-block';
-        familyEl.innerText = p.famille;
-      } else {
-        familyEl.style.display = 'none';
-      }
-
-      if (vis.name && p.nom) {
-        nameEl.style.display = 'block';
-        nameEl.innerText = p.nom;
-      } else {
-        nameEl.style.display = 'none';
-      }
-
-      if (vis.latin && p.latin) {
-        latinEl.style.display = 'block';
-        latinEl.innerText = p.latin;
-      } else {
-        latinEl.style.display = 'none';
-      }
-
-      // Détails de la réponse
-      document.getElementById('prop-container').style.display = vis.prop ? 'block' : 'none';
+      // --- RENDU DU VERSO ---
+      document.getElementById('verso-prop-container').style.display = verso.prop ? 'block' : 'none';
       document.getElementById('fc-prop').innerText = p.proprietes || 'N/A';
 
-      if(vis.otherProp && p.autresProp) {
-        document.getElementById('fc-other-prop-container').style.display = 'block';
+      if(verso.otherProp && p.autresProp) {
+        document.getElementById('verso-other-prop-container').style.display = 'block';
         document.getElementById('fc-other-prop').innerText = p.autresProp;
       } else {
-        document.getElementById('fc-other-prop-container').style.display = 'none';
+        document.getElementById('verso-other-prop-container').style.display = 'none';
       }
 
-      document.getElementById('comp-container').style.display = vis.comp ? 'block' : 'none';
+      document.getElementById('verso-comp-container').style.display = verso.comp ? 'block' : 'none';
       document.getElementById('fc-comp').innerText = p.composition || 'N/A';
 
-      if(vis.risks && p.risques) {
-        document.getElementById('fc-risk-container').style.display = 'block';
+      if(verso.risks && p.risques) {
+        document.getElementById('verso-risk-container').style.display = 'block';
         document.getElementById('fc-risk').innerText = p.risques;
       } else {
-        document.getElementById('fc-risk-container').style.display = 'none';
+        document.getElementById('verso-risk-container').style.display = 'none';
       }
+
+      // Éléments optionnels additionnels au verso si cochés
+      if (verso.img && p.image) { document.getElementById('verso-img-container').style.display = 'block'; document.getElementById('verso-img').src = p.image; } else { document.getElementById('verso-img-container').style.display = 'none'; }
+      if (verso.family && p.famille) { document.getElementById('verso-family-container').style.display = 'block'; document.getElementById('verso-family').innerText = p.famille; } else { document.getElementById('verso-family-container').style.display = 'none'; }
+      if (verso.name && p.nom) { document.getElementById('verso-name-container').style.display = 'block'; document.getElementById('verso-name').innerText = p.nom; } else { document.getElementById('verso-name-container').style.display = 'none'; }
+      if (verso.latin && p.latin) { document.getElementById('verso-latin-container').style.display = 'block'; document.getElementById('verso-latin').innerText = p.latin; } else { document.getElementById('verso-latin-container').style.display = 'none'; }
 
       document.getElementById('fc-details').style.display = 'none';
       document.getElementById('fc-mnemonic').style.display = 'none';
@@ -903,7 +958,11 @@
           
           const notionName = "IA - " + userPrompt.substring(0, 20);
           store.notions[notionName] = newItems;
-          store.coursesMeta[notionName] = { folder: targetFolder };
+          store.coursesMeta[notionName] = { 
+            folder: targetFolder,
+            recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+            verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+          };
 
           store.currentNotion = notionName;
           saveStore();
@@ -925,7 +984,11 @@
         const newList = parseCustomCSV(e.target.result);
         const notionName = file.name.replace('.csv', '');
         store.notions[notionName] = newList;
-        store.coursesMeta[notionName] = { folder: targetFolder };
+        store.coursesMeta[notionName] = { 
+          folder: targetFolder,
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+        };
         store.currentNotion = notionName;
         saveStore();
         alert(`Fichier local importé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
@@ -946,11 +1009,10 @@
         renderPreviewTable();
       }
       if(view === 'config-volets') {
-        loadVisibilityCheckboxes();
+        loadConfigCheckboxes();
       }
     }
 
-    loadVisibilityCheckboxes();
     updateSelectOptions();
     renderCoursesList();
     renderPreviewTable();
