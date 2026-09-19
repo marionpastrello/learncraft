@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Volets Dynamiques par Cours & GPT OSS 120B</title>
+  <title>LearnCraft - Révisions Dynamiques & Images</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -24,115 +24,134 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 15px;
+      padding: 20px;
       margin: 0;
     }
-    h1 { color: var(--primary); margin-bottom: 5px; font-size: 24px; }
+    h1 { color: var(--primary); margin-bottom: 5px; font-size: 26px; font-weight: 700; }
     
-    .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+    .nav-btns { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
     button {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 10px 14px;
-      border-radius: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
       font-size: 14px;
       cursor: pointer;
-      font-weight: bold;
-      transition: transform 0.1s, background 0.2s;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
     }
-    button:hover { background: #1b5e20; }
-    button:active { transform: scale(0.98); }
+    button:hover { background: #1b5e20; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+    button:active { transform: scale(0.97); }
     .btn-secondary { background: #5c6bc0; }
+    .btn-secondary:hover { background: #3f51b5; }
     .btn-warning { background: var(--warning); color: #fff; }
+    .btn-warning:hover { background: #f57c00; }
     .btn-ai { background: var(--ai-purple); color: white; }
     .btn-ai:hover { background: #4a148c; }
     .btn-drive { background: var(--drive-blue); color: white; }
+    .btn-drive:hover { background: #0d47a1; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: #b71c1c; }
     
-    .container { width: 100%; max-width: 650px; }
+    .container { width: 100%; max-width: 700px; }
     
     .card {
       background: var(--card-bg);
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      padding: 25px;
       text-align: center;
       box-sizing: border-box;
+      border: 1px solid #eaeaea;
     }
     .plant-img {
       width: 100%;
-      height: 200px;
+      max-height: 260px;
       object-fit: cover;
-      border-radius: 12px;
+      border-radius: 14px;
       margin-bottom: 15px;
-      background-color: #eee;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .badge {
       display: inline-block;
       background: #e8f5e9;
       color: var(--primary);
-      padding: 4px 12px;
-      border-radius: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
       font-size: 13px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #c8e6c9;
     }
     .details {
       text-align: left;
-      margin-top: 15px;
-      border-top: 2px dashed #eee;
-      padding-top: 15px;
+      margin-top: 20px;
+      border-top: 2px dashed #e0e0e0;
+      padding-top: 20px;
       display: none;
     }
-    .details p { margin: 8px 0; font-size: 14px; white-space: pre-line; }
+    .details p { margin: 10px 0; font-size: 15px; white-space: pre-line; line-height: 1.5; }
     .details strong { color: var(--primary); }
 
     .mnemonic-box {
       background: #f3e5f5;
       border-left: 4px solid var(--ai-purple);
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-top: 15px;
       text-align: left;
-      font-size: 13px;
+      font-size: 14px;
       color: #4a148c;
       display: none;
+      line-height: 1.4;
     }
 
     .section-box {
       background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
       text-align: left;
       border: 1px solid #e0e0e0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
-    .section-box h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
+    .section-box h3 { margin-top: 0; color: var(--primary); font-size: 18px; }
     input, select, textarea {
       width: 100%;
-      padding: 8px 10px;
-      margin: 5px 0 12px 0;
+      padding: 10px 12px;
+      margin: 6px 0 14px 0;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       box-sizing: border-box;
       font-size: 14px;
       font-family: inherit;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
     }
 
     .checkbox-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 8px;
-      font-size: 13px;
-      margin-top: 8px;
+      gap: 10px;
+      font-size: 14px;
+      margin-top: 10px;
     }
     .checkbox-grid label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
+      background: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #eaeaea;
     }
     .checkbox-grid input {
       width: auto;
@@ -141,32 +160,32 @@
 
     .folder-group-box {
       background: #fafbfc;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
+      border: 1px solid #e1e4e8;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
     }
 
     .course-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
+      padding: 10px 12px;
       background: white;
       border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      margin-top: 6px;
+      border-radius: 8px;
+      margin-top: 8px;
       font-size: 13px;
       gap: 10px;
       flex-wrap: wrap;
     }
 
     .table-scroll-container {
-      max-height: 300px;
+      max-height: 320px;
       overflow-x: auto;
       overflow-y: auto;
       border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      border-radius: 10px;
       margin-top: 10px;
     }
 
@@ -178,39 +197,56 @@
     }
     .preview-table th, .preview-table td {
       border: 1px solid #e0e0e0;
-      padding: 8px 10px;
+      padding: 10px 12px;
       text-align: left;
       vertical-align: top;
       white-space: pre-line;
     }
     .preview-table th {
-      background-color: #f0f0f0;
+      background-color: #f5f5f5;
       color: var(--primary);
       position: sticky;
       top: 0;
       z-index: 1;
     }
 
-    .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .qcm-options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+    .qcm-btn {
+      background: #f8f9fa;
+      color: var(--text);
+      border: 1px solid #ccd0d5;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .qcm-btn:hover { background: #e8f5e9; border-color: var(--primary); color: var(--primary); }
     
     .loading-spinner {
       display: none;
       color: var(--ai-purple);
       font-weight: bold;
-      font-size: 13px;
-      margin-top: 5px;
+      font-size: 14px;
+      margin-top: 8px;
     }
 
     .sync-status {
       font-size: 12px;
       font-weight: bold;
       color: var(--drive-blue);
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      background: #e3f2fd;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-block;
     }
 
     .flex-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
     }
   </style>
@@ -218,7 +254,7 @@
 <body>
 
   <h1>🌿 LearnCraft</h1>
-  <div id="sync-info" class="sync-status">💾 Sauvegarde locale uniquement</div>
+  <div id="sync-info" class="sync-status">💾 Sauvegarde locale active</div>
 
   <div class="nav-btns">
     <button onclick="switchView('flashcard')">🎴 Révision</button>
@@ -229,7 +265,7 @@
 
   <div class="container">
 
-    <div id="selector-bar" class="section-box" style="padding:10px; margin-bottom:15px;">
+    <div id="selector-bar" class="section-box" style="padding:12px 15px; margin-bottom:20px;">
       <label for="notion-select"><strong>📂 Cours actif :</strong></label>
       <select id="notion-select" onchange="changeNotion()"></select>
     </div>
@@ -241,27 +277,27 @@
         <div id="fc-recto-dynamic"></div>
       </div>
       
-      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:15px;">👁️ Afficher / Masquer le verso</button>
+      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:20px; width: 100%; padding: 12px;">👁️ Afficher / Masquer le verso</button>
       
       <div id="fc-details" class="details">
         <div id="verso-content-list"></div>
-        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 15px;">✨ 💡 Moyen Mnémotechnique IA</button>
+        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 15px; padding: 12px;">✨ 💡 Moyen Mnémotechnique IA</button>
         <div id="fc-mnemonic" class="mnemonic-box"></div>
       </div>
 
-      <div style="margin-top: 20px; display: flex; justify-content: space-between;">
-        <button onclick="prevCard()" style="background: #78909c;">⬅️ Précédent</button>
-        <button onclick="nextCard()">Suivant ➡️</button>
+      <div style="margin-top: 25px; display: flex; justify-content: space-between; gap: 15px;">
+        <button onclick="prevCard()" style="background: #78909c; flex: 1;">⬅️ Précédent</button>
+        <button onclick="nextCard()" style="flex: 1;">Suivant ➡️</button>
       </div>
     </div>
 
     <!-- QCM VIEW -->
     <div id="view-qcm" class="card" style="display: none;">
       <span id="qcm-badge" class="badge">Question QCM</span>
-      <h3 id="qcm-question">Question de révision</h3>
+      <h3 id="qcm-question" style="font-size: 18px; color: var(--primary); margin-top: 10px;">Question de révision</h3>
       <div id="qcm-options" class="qcm-options"></div>
-      <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
-      <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
+      <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold; font-size: 15px;"></div>
+      <button id="qcm-next-btn" onclick="renderQCM()" class="btn-primary" style="margin-top: 20px; width: 100%; display: none;">Question suivante ➡️</button>
     </div>
 
     <!-- CONFIGURATION RECTO / VERSO DYNAMIQUE PAR COURS -->
@@ -270,18 +306,18 @@
       <p style="font-size:13px; color:#555;">Cochez les colonnes de votre tableau à afficher au Recto et au Verso pour ce cours spécifique.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
+        <div style="background: #fafafa; padding: 12px; border-radius: 10px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--primary);">📤 Colonnes du RECTO</h4>
           <div id="recto-checkboxes" class="checkbox-grid"></div>
         </div>
 
-        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
+        <div style="background: #fafafa; padding: 12px; border-radius: 10px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--warning);">📥 Colonnes du VERSO</h4>
           <div id="verso-checkboxes" class="checkbox-grid"></div>
         </div>
       </div>
 
-      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 15px;">💾 Enregistrer & Retourner aux révisions</button>
+      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 20px; padding: 12px;">💾 Enregistrer & Retourner aux révisions</button>
     </div>
 
     <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
@@ -314,19 +350,19 @@
       <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
         <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive & Sheets</h3>
         <label><strong>Ranger l'import dans ce dossier :</strong></label>
-        <select id="import-folder-select" style="margin-bottom:10px;"></select>
+        <select id="import-folder-select" style="margin-bottom:12px;"></select>
 
         <label><strong>ID Client Google Cloud :</strong></label>
         <input type="text" id="client-id-input" placeholder="000000000000-xxx.apps.googleusercontent.com" onchange="saveClientId()">
-        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%;">🔗 1. Connecter mon Google Drive</button>
+        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%; padding: 11px;">🔗 1. Connecter mon Google Drive</button>
         
-        <label style="margin-top: 10px; display:block;"><strong>ID du fichier Google Sheet :</strong></label>
+        <label style="margin-top: 15px; display:block;"><strong>ID du fichier Google Sheet :</strong></label>
         <input type="text" id="sheet-id-input" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" onchange="saveSheetId()">
 
         <label style="margin-top: 10px; display:block;"><strong>Nom personnalisé du cours (Optionnel) :</strong></label>
         <input type="text" id="sheet-custom-name" placeholder="Laisser vide pour prendre le nom du Google Sheet">
 
-        <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
+        <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%; margin-top: 5px; padding: 11px;">📊 2. Charger ce Google Sheet dans l'appli</button>
       </div>
       
       <!-- CONFIGURATION API GROQ (IA) -->
@@ -339,7 +375,7 @@
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA</h3>
         <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les bases de la programmation..."></textarea>
-        <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
+        <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%; padding: 11px;">🤖 Générer automatiquement le cours</button>
         <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
       </div>
 
@@ -386,7 +422,6 @@
       const notion = store.currentNotion;
       const currentList = store.notions[notion] || [];
       
-      // Déduit dynamiquement les en-têtes des clés du premier objet du tableau s'ils n'existent pas
       let headers = [];
       if (store.coursesMeta[notion] && store.coursesMeta[notion].headers) {
         headers = store.coursesMeta[notion].headers;
@@ -404,7 +439,6 @@
         store.coursesMeta[notion].headers = headers;
       }
 
-      // Initialise par défaut la moitié au recto, le reste au verso si vide
       if (!store.coursesMeta[notion].recto || Object.keys(store.coursesMeta[notion].recto).length === 0) {
         store.coursesMeta[notion].recto = {};
         store.coursesMeta[notion].verso = {};
@@ -588,7 +622,7 @@
       store.folders.forEach(folder => {
         const folderBox = document.createElement('div');
         folderBox.className = 'folder-group-box';
-        folderBox.innerHTML = `<h4 style="margin:0 0 8px 0; color:var(--primary);">📁 ${folder}</h4>`;
+        folderBox.innerHTML = `<h4 style="margin:0 0 10px 0; color:var(--primary);">📁 ${folder}</h4>`;
 
         const keys = Object.keys(store.notions).filter(key => {
           const f = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
@@ -611,10 +645,10 @@
               </div>
               <div class="flex-row">
                 <span style="font-size:11px;">Dossier:</span>
-                <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:2px 4px; font-size:11px; width:auto;">
+                <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:4px 6px; font-size:11px; width:auto;">
                   ${folderOptions}
                 </select>
-                <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️</button>
+                <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:5px 8px; font-size:11px;">🗑️</button>
               </div>
             `;
             folderBox.appendChild(itemDiv);
@@ -633,7 +667,6 @@
       const cfg = getActiveConfig();
       const list = getCurrentList();
 
-      // Construit les en-têtes du tableau de prévisualisation
       let headHtml = '';
       cfg.headers.forEach(h => {
         headHtml += `<th>${h}</th>`;
@@ -652,7 +685,7 @@
           let val = item[h] !== undefined ? item[h] : '-';
           trHtml += `<td>${val}</td>`;
         });
-        trHtml += `<td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>`;
+        trHtml += `<td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:3px 6px; font-size:10px;">❌</button></td>`;
         
         const tr = document.createElement('tr');
         tr.innerHTML = trHtml;
@@ -719,17 +752,17 @@
         let val = p[h] || '';
         if(!val) return;
 
-        // Détecte si la colonne contient une image (URL d'image)
+        // Détection intelligente des images (URL Google Drive direct, lien web, etc.)
         if (h.toLowerCase().includes('image') || h.toLowerCase().includes('photo') || val.startsWith('http')) {
           if (cfg.recto[h]) {
             rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
           }
           if (cfg.verso[h]) {
-            versoHTML += `<p><img src="${val}" class="plant-img" style="height:120px;"></p>`;
+            versoHTML += `<p><img src="${val}" class="plant-img" style="height:140px;"></p>`;
           }
         } else {
           if (cfg.recto[h]) {
-            rectoContainer.innerHTML += `<p style="margin: 6px 0; font-size: 15px;"><strong>${h}:</strong> ${val}</p>`;
+            rectoContainer.innerHTML += `<p style="margin: 8px 0; font-size: 16px;"><strong>${h}:</strong> ${val}</p>`;
           }
           if (cfg.verso[h]) {
             versoHTML += `<p><strong>${h} :</strong> ${val}</p>`;
@@ -882,59 +915,64 @@
 
       qcmCurrentCard = list[Math.floor(Math.random() * list.length)];
       const primaryHeader = cfg.headers[0] || 'Nom';
-      const secondaryHeader = cfg.headers[1] || primaryHeader;
-
-      document.getElementById('qcm-question').innerText = `Quelle carte correspond à :\n"${qcmCurrentCard[secondaryHeader] || qcmCurrentCard[primaryHeader]}" ?`;
-
-      let choices = [qcmCurrentCard];
-      while (choices.length < 3 && choices.length < list.length) {
-        let rand = list[Math.floor(Math.random() * list.length)];
-        if (!choices.includes(rand)) choices.push(rand);
+      
+      document.getElementById('qcm-question').innerText = `Quelle est la bonne correspondance pour : ${qcmCurrentCard[primaryHeader]} ?`;
+      
+      // Générer des choix aléatoires
+      let options = [qcmCurrentCard];
+      while (options.length < 3 && options.length < list.length) {
+        let randCard = list[Math.floor(Math.random() * list.length)];
+        if (!options.includes(randCard)) options.push(randCard);
       }
-      choices.sort(() => Math.random() - 0.5);
+      options.sort(() => Math.random() - 0.5);
 
       const optionsContainer = document.getElementById('qcm-options');
       optionsContainer.innerHTML = '';
-      choices.forEach(opt => {
+      
+      options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.style.background = '#e0e0e0';
-        btn.style.color = '#333';
-        btn.innerText = opt[primaryHeader];
-        btn.onclick = () => checkQCMAnswer(opt === qcmCurrentCard, btn, primaryHeader);
+        btn.className = 'qcm-btn';
+        let displayText = cfg.headers[1] ? opt[cfg.headers[1]] : opt[primaryHeader];
+        btn.innerText = displayText;
+        btn.onclick = () => checkQCMAnswer(opt, qcmCurrentCard);
         optionsContainer.appendChild(btn);
       });
     }
 
-    function checkQCMAnswer(isCorrect, btn, primaryHeader) {
+    function checkQCMAnswer(selected, correct) {
       const feedback = document.getElementById('qcm-feedback');
-      const optionsContainer = document.getElementById('qcm-options');
-      Array.from(optionsContainer.children).forEach(b => b.disabled = true);
-
-      if (isCorrect) {
-        btn.style.background = 'var(--primary)';
-        btn.style.color = 'white';
+      const nextBtn = document.getElementById('qcm-next-btn');
+      if (selected === correct) {
         feedback.style.color = 'var(--primary)';
-        feedback.innerText = "🎉 Bonne réponse !";
+        feedback.innerText = "✅ Bonne réponse ! Excellent travail.";
       } else {
-        btn.style.background = 'var(--danger)';
-        btn.style.color = 'white';
         feedback.style.color = 'var(--danger)';
-        feedback.innerText = `❌ Mauvaise réponse. C'était : ${qcmCurrentCard[primaryHeader]}`;
+        feedback.innerText = "❌ Mauvaise réponse. Essaie encore ou passe à la suivante.";
       }
-      document.getElementById('qcm-next-btn').style.display = 'block';
+      nextBtn.style.display = 'block';
     }
 
-    async function callGroqAPI(promptText) {
+    async function generateMnemonic() {
+      const list = getCurrentList();
+      if(list.length === 0) return;
+      const p = list[currentIndex];
+      const mnemonicBox = document.getElementById('fc-mnemonic');
+      
       if(!store.apiKey) {
-        alert("Pense à configurer ta clé API Groq dans l'onglet Réglages !");
-        return null;
+        alert("Veuillez renseigner votre clé API Groq dans les réglages !");
+        return;
       }
+
+      mnemonicBox.style.display = 'block';
+      mnemonicBox.innerText = "✨ Génération du moyen mnémotechnique par l'IA en cours...";
+
       try {
+        const promptText = `Crée un moyen mnémotechnique court, drôle ou facile à retenir pour mémoriser ces données de révision : ${JSON.stringify(p)}`;
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + store.apiKey
+            "Authorization": `Bearer ${store.apiKey}`,
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             model: "openai/gpt-oss-120b",
@@ -942,168 +980,18 @@
           })
         });
         const data = await response.json();
-        if (data.error) {
-          alert(`Erreur API Groq : ${data.error.message}`);
-          return null;
-        }
-        if (data.choices && data.choices.length > 0) {
-          return data.choices[0].message.content;
-        }
-      } catch (err) {
-        alert("Erreur réseau avec Groq : " + err.message);
-      }
-      return null;
-    }
-
-    async function generateMnemonic() {
-      const list = getCurrentList();
-      const cfg = getActiveConfig();
-      if(list.length === 0) return;
-      const p = list[currentIndex];
-      const box = document.getElementById('fc-mnemonic');
-      box.style.display = 'block';
-      box.innerText = "⚡ L'IA réfléchit à une astuce...";
-
-      const firstKey = cfg.headers[0] || 'Nom';
-      const prompt = `Propose un moyen mnémotechnique court, amusant et mémorable (adapté au TDAH) pour retenir l'élément '${p[firstKey]}'. Maximum 2 phrases.`;
-      const res = await callGroqAPI(prompt);
-      if(res) {
-        box.innerText = "💡 Astuce IA : " + res;
-      }
-    }
-
-    async function generateCourseWithAI() {
-      const userPrompt = document.getElementById('ai-prompt-input').value.trim();
-      const targetFolder = document.getElementById('import-folder-select').value || 'IA';
-      if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
-
-      document.getElementById('ai-status').style.display = 'block';
-      const systemPrompt = `Tu es un assistant de création de cours. Analyse la demande suivante et retourne UNIQUEMENT un tableau JSON valide au format exact suivant, sans texte explicatif ni markdown autour :
-      [
-        {
-          "Nom": "Nom de l'élément",
-          "Description": "Détails principaux"
-        }
-      ]
-      Demande de l'utilisateur : ${userPrompt}`;
-
-      const res = await callGroqAPI(systemPrompt);
-      document.getElementById('ai-status').style.display = 'none';
-
-      if(res) {
-        try {
-          const cleanJson = res.replace(/```json/g, '').replace(/```/g, '').trim();
-          const newItems = JSON.parse(cleanJson);
-          const headers = Object.keys(newItems[0] || { Nom: "", Description: "" });
-          
-          const notionName = "IA - " + userPrompt.substring(0, 20);
-          store.notions[notionName] = newItems;
-
-          let rectoConfig = {};
-          let versoConfig = {};
-          headers.forEach((h, idx) => {
-            rectoConfig[h] = idx < Math.ceil(headers.length / 2);
-            versoConfig[h] = idx >= Math.ceil(headers.length / 2);
-          });
-
-          store.coursesMeta[notionName] = { 
-            folder: targetFolder,
-            headers: headers,
-            recto: rectoConfig,
-            verso: versoConfig
-          };
-
-          store.currentNotion = notionName;
-          saveStore();
-          alert("Nouveau cours généré avec succès !");
-          switchView('flashcard');
-        } catch(e) {
-          alert("Erreur de formatage de l'IA, réessaie avec une consigne plus simple.");
-        }
-      }
-    }
-
-    function connectGoogleDrive() {
-      if(!store.clientId) return alert("Renseigne d'abord ton ID Client Google !");
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: store.clientId,
-        scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
-        callback: async (response) => {
-          if (response.access_token) {
-            accessToken = response.access_token;
-            document.getElementById('sync-info').innerText = "☁️ Connecté à ton Drive Privé";
-            alert("Connecté à Google Drive avec succès !");
-          }
-        },
-      });
-      client.requestAccessToken();
-    }
-
-    async function importGoogleSheet() {
-      const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
-      const customNameInput = document.getElementById('sheet-custom-name').value.trim();
-      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
-      if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
-      if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
-
-      try {
-        let sheetTitle = "";
-        if (!customNameInput) {
-          try {
-            const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${sheetId}`, {
-              headers: { 'Authorization': 'Bearer ' + accessToken }
-            });
-            const metaData = await metaRes.json();
-            if (metaData && metaData.name) {
-              sheetTitle = metaData.name;
-            }
-          } catch(err) {
-            console.warn("Impossible de récupérer le nom Drive.");
-          }
-        }
-
-        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-        const res = await fetch(url, {
-          headers: { 'Authorization': 'Bearer ' + accessToken }
-        });
-        const csvText = await res.text();
-        const parsed = parseCustomCSV(csvText);
-
-        if(parsed.data.length > 0) {
-          let notionName = customNameInput !== "" ? customNameInput : (sheetTitle !== "" ? sheetTitle : ("Sheet - " + new Date().toLocaleTimeString()));
-          
-          store.notions[notionName] = parsed.data;
-
-          let rectoConfig = {};
-          let versoConfig = {};
-          parsed.headers.forEach((h, idx) => {
-            rectoConfig[h] = idx < Math.ceil(parsed.headers.length / 2);
-            versoConfig[h] = idx >= Math.ceil(parsed.headers.length / 2);
-          });
-
-          store.coursesMeta[notionName] = { 
-            folder: targetFolder,
-            headers: parsed.headers,
-            recto: rectoConfig,
-            verso: versoConfig
-          };
-
-          store.currentNotion = notionName;
-          document.getElementById('sheet-custom-name').value = '';
-          saveStore();
-          alert(`Google Sheet "${notionName}" chargé (${parsed.data.length} fiches) dans le dossier '${targetFolder}' !`);
-          switchView('flashcard');
+        if(data.choices && data.choices[0]) {
+          mnemonicBox.innerText = "💡 " + data.choices[0].message.content;
         } else {
-          alert("Impossible de lire les données du fichier Google Sheet.");
+          mnemonicBox.innerText = "⚠️ Erreur lors de la génération par l'IA.";
         }
-      } catch(e) {
-        alert("Erreur lors du chargement du Google Sheet : " + e.message);
+      } catch (e) {
+        mnemonicBox.innerText = "⚠️ Erreur de connexion avec l'API Groq.";
       }
     }
 
+    // Initialisation au chargement de la page
     updateSelectOptions();
-    renderCoursesList();
-    renderPreviewTable();
     renderFlashcard();
   </script>
 </body>
