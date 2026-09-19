@@ -139,15 +139,23 @@
       margin: 0;
     }
 
+    .folder-group-box {
+      background: #fafbfc;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
     .course-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
-      background: #f9f9f9;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      margin-top: 6px;
       font-size: 13px;
       gap: 10px;
       flex-wrap: wrap;
@@ -228,7 +236,6 @@
 
     <!-- FLASHCARD VIEW -->
     <div id="view-flashcard" class="card">
-      <!-- Conteneur dynamique du RECTO -->
       <div id="recto-container">
         <img id="fc-img" class="plant-img" src="" alt="Plante" style="display:none;" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
         <span id="fc-family" class="badge" style="display:none;">Famille</span>
@@ -242,7 +249,6 @@
       
       <button onclick="toggleDetails()" class="btn-warning" style="margin-top:15px;">👁️ Afficher / Masquer le verso</button>
       
-      <!-- Conteneur dynamique du VERSO -->
       <div id="fc-details" class="details">
         <div id="verso-content-list"></div>
         <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 15px;">✨ 💡 Moyen Mnémotechnique IA</button>
@@ -268,7 +274,7 @@
     <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
     <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
       <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> (avant le clic) et ce qui est caché au <strong>Verso</strong> (révélé après le clic) pour ce cours spécifique.</p>
+      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> et au <strong>Verso</strong> pour ce cours spécifique.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
@@ -329,17 +335,18 @@
         </div>
       </div>
 
-      <!-- GESTION ET DÉPLACEMENT DANS LES DOSSIERS -->
+      <!-- GESTION ET ARBORESCENCE DES DOSSIERS -->
       <div class="section-box" style="border-left: 4px solid var(--danger);">
-        <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
+        <h3 style="color: var(--danger);">📂 Arborescence des Dossiers & Cours</h3>
+        <p style="font-size:12px; color:#666;">Organisez vos 100+ fichiers par dossiers pour garder une interface claire.</p>
         <div class="flex-row" style="margin-bottom:12px;">
-          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier (ex: Pharmacologie)" style="margin:0;">
+          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier..." style="margin:0;">
           <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
         </div>
         <div id="courses-list"></div>
       </div>
 
-      <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ & SHEET -->
+      <!-- SYNCHRONISATION GOOGLE DRIVE & SHEET -->
       <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
         <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive & Sheets</h3>
         <label><strong>Ranger l'import dans ce dossier :</strong></label>
@@ -357,14 +364,13 @@
       <!-- CONFIGURATION API GROQ (IA) -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (IA ultra-rapide)</h3>
-        <p style="font-size:12px; color:#666;">Obtiens ta clé gratuite sur <a href="https://console.groq.com" target="_blank">console.groq.com</a></p>
         <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
       </div>
 
       <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
         <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA (Groq)</h3>
-        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil..."></textarea>
+        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales..."></textarea>
         <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
         <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
       </div>
@@ -563,33 +569,43 @@
     function renderCoursesList() {
       const container = document.getElementById('courses-list');
       container.innerHTML = '';
-      const keys = Object.keys(store.notions);
-      if(keys.length === 0) {
-        container.innerHTML = '<p style="font-size:13px; color:#888;">Aucun cours enregistré.</p>';
-        return;
-      }
-      keys.forEach(key => {
-        const currentFolder = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
-        
-        let folderOptions = store.folders.map(f => 
-          `<option value="${f}" ${f === currentFolder ? 'selected' : ''}>${f}</option>`
-        ).join('');
+      
+      store.folders.forEach(folder => {
+        const folderBox = document.createElement('div');
+        folderBox.className = 'folder-group-box';
+        folderBox.innerHTML = `<h4 style="margin:0 0 8px 0; color:var(--primary);">📁 ${folder}</h4>`;
 
-        const div = document.createElement('div');
-        div.className = 'course-item';
-        div.innerHTML = `
-          <div style="flex:1;">
-            <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
-          </div>
-          <div class="flex-row">
-            <span style="font-size:11px;">Dossier:</span>
-            <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:2px 4px; font-size:11px; width:auto;">
-              ${folderOptions}
-            </select>
-            <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️ Supprimer</button>
-          </div>
-        `;
-        container.appendChild(div);
+        const keys = Object.keys(store.notions).filter(key => {
+          const f = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+          return f === folder;
+        });
+
+        if (keys.length === 0) {
+          folderBox.innerHTML += `<p style="font-size:12px; color:#888; margin:0;">Aucun cours dans ce dossier.</p>`;
+        } else {
+          keys.forEach(key => {
+            let folderOptions = store.folders.map(f => 
+              `<option value="${f}" ${f === folder ? 'selected' : ''}>${f}</option>`
+            ).join('');
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'course-item';
+            itemDiv.innerHTML = `
+              <div style="flex:1;">
+                <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
+              </div>
+              <div class="flex-row">
+                <span style="font-size:11px;">Dossier:</span>
+                <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:2px 4px; font-size:11px; width:auto;">
+                  ${folderOptions}
+                </select>
+                <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️</button>
+              </div>
+            `;
+            folderBox.appendChild(itemDiv);
+          });
+        }
+        container.appendChild(folderBox);
       });
     }
 
@@ -801,7 +817,6 @@
       document.getElementById('view-qcm').style.display = 'none';
       document.getElementById('view-manager').style.display = 'none';
       document.getElementById('view-config-volets').style.display = 'none';
-      document.getElementById('selector-bar').style.display = 'block';
 
       if (viewName === 'flashcard') {
         document.getElementById('view-flashcard').style.display = 'block';
@@ -835,7 +850,7 @@
       }
 
       qcmCurrentCard = list[Math.floor(Math.random() * list.length)];
-      document.getElementById('qcm-question').innerText = `Quelle carte correspond à la propriété / description suivante :\n"${qcmCurrentCard.proprietes || qcmCurrentCard.nom}" ?`;
+      document.getElementById('qcm-question').innerText = `Quelle carte correspond à la propriété suivante :\n"${qcmCurrentCard.proprietes || qcmCurrentCard.nom}" ?`;
       
       const imgEl = document.getElementById('qcm-img');
       if(qcmCurrentCard.image) {
@@ -883,236 +898,149 @@
       document.getElementById('qcm-next-btn').style.display = 'block';
     }
 
+    async function callGroqAPI(promptText) {
+      if(!store.apiKey) {
+        alert("Pense à configurer ta clé API Groq dans l'onglet Réglages !");
+        return null;
+      }
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + store.apiKey
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-8b-instant",
+            messages: [{ role: "user", content: promptText }]
+          })
+        });
+        const data = await response.json();
+        if (data.error) {
+          alert(`Erreur API Groq : ${data.error.message}`);
+          return null;
+        }
+        if (data.choices && data.choices.length > 0) {
+          return data.choices[0].message.content;
+        }
+      } catch (err) {
+        alert("Erreur réseau avec Groq : " + err.message);
+      }
+      return null;
+    }
+
     async function generateMnemonic() {
       const list = getCurrentList();
       if(list.length === 0) return;
       const p = list[currentIndex];
-      const mnemonicEl = document.getElementById('fc-mnemonic');
+      const box = document.getElementById('fc-mnemonic');
+      box.style.display = 'block';
+      box.innerText = "⚡ L'IA réfléchit à une astuce...";
 
-      if (!store.apiKey) {
-        alert("Veuillez renseigner votre clé API Groq dans les réglages !");
-        return;
-      }
-
-      mnemonicEl.style.display = 'block';
-      mnemonicEl.innerText = "⏳ Génération du moyen mnémotechnique par l'IA...";
-
-      try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{
-              role: "user",
-              content: `Crée un moyen mnémotechnique court, amusant et percutant (adapté aux profils TDAH) pour retenir les informations de cette carte :\nNom : ${p.nom} (${p.latin})\nPropriétés : ${p.proprietes}\nComposants : ${p.composition}\nRisques : ${p.risques}`
-            }]
-          })
-        });
-        const data = await response.json();
-        if(data.choices && data.choices[0]) {
-          mnemonicEl.innerText = "💡 " + data.choices[0].message.content;
-        } else {
-          mnemonicEl.innerText = "Erreur lors de la génération.";
-        }
-      } catch (err) {
-        mnemonicEl.innerText = "Erreur réseau / API Groq.";
+      const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de la plante '${p.nom}'. Maximum 2 phrases.`;
+      const res = await callGroqAPI(prompt);
+      if(res) {
+        box.innerText = "💡 Astuce IA : " + res;
       }
     }
 
     async function generateCourseWithAI() {
-      const prompt = document.getElementById('ai-prompt-input').value.trim();
-      const status = document.getElementById('ai-status');
-      if(!prompt) return alert("Saisis une consigne pour l'IA !");
-      if(!store.apiKey) return alert("Renseigne ta clé API Groq !");
+      const userPrompt = document.getElementById('ai-prompt-input').value.trim();
+      const targetFolder = document.getElementById('import-folder-select').value || 'IA';
+      if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
 
-      status.style.display = 'block';
-
-      try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{
-              role: "user",
-              content: `Tu es un assistant pédagogique expert. Réponds UNIQUEMENT sous forme de données CSV brutes (sans markdown autour, sans texte d'introduction), avec les en-têtes exacts : nom,latin,famille,image,proprietes,autresProp,composition,risques.
-              Génère des fiches de cours détaillées basées sur cette demande : ${prompt}`
-            }]
-          })
-        });
-        const data = await response.json();
-        if(data.choices && data.choices[0]) {
-          let csvContent = data.choices[0].message.content.replace(/```csv/g, '').replace(/```/g, '').trim();
-          const cards = parseCustomCSV(csvContent);
-          if(cards.length > 0) {
-            const courseName = "AI: " + prompt.slice(0, 25);
-            const folder = document.getElementById('import-folder-select').value;
-            store.notions[courseName] = cards;
-            store.coursesMeta[courseName] = {
-              folder: folder,
-              recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
-              verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
-            };
-            store.currentNotion = courseName;
-            saveStore();
-            alert(`Cours généré et enregistré dans "${folder}" !`);
-            switchView('flashcard');
-          } else {
-            alert("L'IA n'a pas renvoyé un format exploitable.");
-          }
+      document.getElementById('ai-status').style.display = 'block';
+      const systemPrompt = `Tu es un assistant de création de cours. Analyse la demande suivante et retourne UNIQUEMENT un tableau JSON valide au format exact suivant, sans texte explicatif ni markdown autour :
+      [
+        {
+          "nom": "Nom commun",
+          "latin": "Nom scientifique",
+          "famille": "Famille",
+          "composition": "Composition",
+          "proprietes": "Propriétés principales"
         }
-      } catch(err) {
-        alert("Erreur lors de la génération IA.");
-      } finally {
-        status.style.display = 'none';
+      ]
+      Demande de l'utilisateur : ${userPrompt}`;
+
+      const res = await callGroqAPI(systemPrompt);
+      document.getElementById('ai-status').style.display = 'none';
+
+      if(res) {
+        try {
+          const cleanJson = res.replace(/```json/g, '').replace(/```/g, '').trim();
+          const newItems = JSON.parse(cleanJson);
+          
+          const notionName = "IA - " + userPrompt.substring(0, 20);
+          store.notions[notionName] = newItems;
+          store.coursesMeta[notionName] = { 
+            folder: targetFolder,
+            recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+            verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+          };
+
+          store.currentNotion = notionName;
+          saveStore();
+          alert("Nouveau cours généré avec succès !");
+          switchView('flashcard');
+        } catch(e) {
+          alert("Erreur de formatage de l'IA, réessaie avec une consigne plus simple.");
+        }
       }
     }
 
     function connectGoogleDrive() {
-      if(!store.clientId) return alert("Renseigne ton ID Client Google Cloud !");
+      if(!store.clientId) return alert("Renseigne d'abord ton ID Client Google !");
       const client = google.accounts.oauth2.initTokenClient({
         client_id: store.clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: (response) => {
+        scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
+        callback: async (response) => {
           if (response.access_token) {
             accessToken = response.access_token;
-            document.getElementById('sync-info').innerText = "🟢 Connecté à Google Drive";
-            alert("Connexion Google Drive réussie !");
-            findOrCreateDriveFile();
+            document.getElementById('sync-info').innerText = "☁️ Connecté à ton Drive Privé";
+            alert("Connecté à Google Drive avec succès !");
           }
         },
       });
       client.requestAccessToken();
     }
 
-    async function findOrCreateDriveFile() {
-      if(!accessToken) return;
-      try {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='learncraft_sync.json' and trashed=false`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        const data = await res.json();
-        if (data.files && data.files.length > 0) {
-          driveFileId = data.files[0].id;
-          loadFromDrive();
-        } else {
-          const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-            body: createMultiPartBody({name: 'learncraft_sync.json', mimeType: 'application/json'}, JSON.stringify(store))
-          });
-          const createData = await createRes.json();
-          driveFileId = createData.id;
-        }
-      } catch(err) {
-        console.error(err);
-      }
-    }
-
-    function createMultiPartBody(metadata, fileContent) {
-      const boundary = 'foo_bar_baz';
-      const delimiter = `\r\n--${boundary}\r\n`;
-      const closeDelimiter = `\r\n--${boundary}--`;
-      return delimiter +
-        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-        JSON.stringify(metadata) +
-        delimiter +
-        'Content-Type: application/json\r\n\r\n' +
-        fileContent +
-        closeDelimiter;
-    }
-
-    async function syncToDrive() {
-      if(!accessToken || !driveFileId) return;
-      try {
-        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(store)
-        });
-        document.getElementById('sync-info').innerText = "🟢 Synchronisé avec Google Drive";
-      } catch(err) {
-        console.error(err);
-      }
-    }
-
-    async function loadFromDrive() {
-      if(!accessToken || !driveFileId) return;
-      try {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        const remoteStore = await res.json();
-        if(remoteStore && remoteStore.notions) {
-          store = remoteStore;
-          saveStore();
-          renderFlashcard();
-        }
-      } catch(err) {
-        console.error(err);
-      }
-    }
-
     async function importGoogleSheet() {
-      if(!store.sheetId) return alert("Renseigne l'ID du fichier Google Sheet !");
-      if(!accessToken) return alert("Connecte d'abord ton Google Drive !");
+      const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
+      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
+      if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
+      if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
 
       try {
-        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${store.sheetId}/values/A1:Z100`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': 'Bearer ' + accessToken }
         });
-        const data = await res.json();
-        if(data.values && data.values.length > 1) {
-          let rows = data.values;
-          let cards = [];
-          for(let i=1; i<rows.length; i++) {
-            let r = rows[i];
-            if(r[0]) {
-              cards.push({
-                nom: r[0] || '',
-                latin: r[1] || '',
-                famille: r[2] || '',
-                image: r[3] || '',
-                proprietes: r[4] || '',
-                autresProp: r[5] || '',
-                composition: r[6] || '',
-                risques: r[7] || ''
-              });
-            }
-          }
-          if(cards.length > 0) {
-            let courseName = "Sheet Import " + new Date().toLocaleDateString();
-            const folder = document.getElementById('import-folder-select').value;
-            store.notions[courseName] = cards;
-            store.coursesMeta[courseName] = {
-              folder: folder,
-              recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
-              verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
-            };
-            store.currentNotion = courseName;
-            saveStore();
-            alert(`Google Sheet importé avec succès (${cards.length} cartes) dans "${folder}" !`);
-            switchView('flashcard');
-          }
+        const csvText = await res.text();
+        const newList = parseCustomCSV(csvText);
+
+        if(newList.length > 0) {
+          const notionName = "Sheet - " + new Date().toLocaleTimeString();
+          store.notions[notionName] = newList;
+          store.coursesMeta[notionName] = { 
+            folder: targetFolder,
+            recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+            verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+          };
+          store.currentNotion = notionName;
+          saveStore();
+          alert(`Google Sheet chargé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
+          switchView('flashcard');
         } else {
-          alert("Le Google Sheet semble vide ou mal formaté.");
+          alert("Impossible de lire les données du fichier Google Sheet.");
         }
-      } catch(err) {
-        alert("Erreur lors de la lecture du Google Sheet. Vérifiez les droits d'accès.");
+      } catch(e) {
+        alert("Erreur lors du chargement du Google Sheet : " + e.message);
       }
     }
 
     updateSelectOptions();
+    renderCoursesList();
+    renderPreviewTable();
     renderFlashcard();
   </script>
 </body>
