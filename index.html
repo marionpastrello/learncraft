@@ -439,6 +439,40 @@
       if(accessToken) syncToDrive();
     }
 
+    // Fonction de synchronisation Drive ajoutée et sécurisée
+    async function syncToDrive() {
+      if(!accessToken) return;
+      document.getElementById('sync-info').innerText = "🔄 Synchronisation Drive...";
+      const fileContent = JSON.stringify(store);
+      const file = new Blob([fileContent], { type: 'application/json' });
+      const metadata = { name: 'learncraft_private_db.json', mimeType: 'application/json' };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', file);
+
+      let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      let method = 'POST';
+
+      if(driveFileId) {
+        url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
+        method = 'PATCH';
+      }
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+          body: form
+        });
+        const data = await res.json();
+        driveFileId = data.id;
+        document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
+      } catch (e) {
+        document.getElementById('sync-info').innerText = "❌ Erreur Synchro Drive";
+      }
+    }
+
     function saveCurrentCourseConfig() {
       const cfg = getActiveConfig();
       cfg.recto = {
@@ -911,7 +945,7 @@
             "Authorization": "Bearer " + store.apiKey
           },
           body: JSON.stringify({
-            model: "llama-3.1-8b-instant",
+            model: "openai/gpt-oss-120b",
             messages: [{ role: "user", content: promptText }]
           })
         });
