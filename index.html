@@ -436,40 +436,42 @@
       updateSelectOptions();
       renderCoursesList();
       renderPreviewTable();
-      if(accessToken) syncToDrive();
+      if(typeof syncToDrive === 'function' && accessToken) {
+        syncToDrive();
+      }
     }
 
-    // Fonction de synchronisation Drive ajoutée et sécurisée
+    // Synchronisation Drive sécurisée (évite toute erreur si non connecté)
     async function syncToDrive() {
       if(!accessToken) return;
-      document.getElementById('sync-info').innerText = "🔄 Synchronisation Drive...";
-      const fileContent = JSON.stringify(store);
-      const file = new Blob([fileContent], { type: 'application/json' });
-      const metadata = { name: 'learncraft_private_db.json', mimeType: 'application/json' };
-
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', file);
-
-      let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-      let method = 'POST';
-
-      if(driveFileId) {
-        url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
-        method = 'PATCH';
-      }
-
       try {
+        document.getElementById('sync-info').innerText = "🔄 Synchronisation Drive...";
+        const fileContent = JSON.stringify(store);
+        const file = new Blob([fileContent], { type: 'application/json' });
+        const metadata = { name: 'learncraft_private_db.json', mimeType: 'application/json' };
+
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', file);
+
+        let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        let method = 'POST';
+
+        if(driveFileId) {
+          url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
+          method = 'PATCH';
+        }
+
         const res = await fetch(url, {
           method,
           headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
           body: form
         });
         const data = await res.json();
-        driveFileId = data.id;
+        if(data.id) driveFileId = data.id;
         document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
       } catch (e) {
-        document.getElementById('sync-info').innerText = "❌ Erreur Synchro Drive";
+        document.getElementById('sync-info').innerText = "⚠️ Synchro locale (Drive inactif)";
       }
     }
 
@@ -945,7 +947,7 @@
             "Authorization": "Bearer " + store.apiKey
           },
           body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
+            model: "llama-3.1-8b-instant",
             messages: [{ role: "user", content: promptText }]
           })
         });
