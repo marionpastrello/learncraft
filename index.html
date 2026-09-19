@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Révisions & Images Dynamiques</title>
+  <title>LearnCraft TDAH - Révisions Ludiques & Images Dynamiques</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -767,7 +767,7 @@
         let val = p[h] || '';
         if(!val) return;
 
-        // Correction universelle de détection d'image (URL http/https ou nom de colonne explicite)
+        // Détection universelle et robuste des images (URLs ou en-têtes explicites)
         const isImage = (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) && 
                         (h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('url') || h.toLowerCase().includes('visuel') || h.toLowerCase().includes('illustration') || val.match(/\.(jpeg|jpg|gif|png|webp)$/i) || val.includes('unsplash') || val.includes('drive.google') || val.includes('imgur'));
 
