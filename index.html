@@ -274,7 +274,7 @@
     <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
     <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
       <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Les volets s'adaptent dynamiquement au cours sélectionné.</p>
+      <p style="font-size:13px; color:#555;">Modifiez les volets ci-dessous. Les changements s'appliquent en temps réel et indépendamment à ce cours.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
@@ -359,7 +359,7 @@
         <input type="text" id="sheet-id-input" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" onchange="saveSheetId()">
 
         <label style="margin-top: 10px; display:block;"><strong>Nom personnalisé du cours (Optionnel) :</strong></label>
-        <input type="text" id="sheet-custom-name" placeholder="Laisser vide pour utiliser le nom du fichier">
+        <input type="text" id="sheet-custom-name" placeholder="Laisser vide pour prendre automatiquement le nom du fichier Google Sheet">
 
         <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
       </div>
@@ -694,6 +694,7 @@
       currentIndex = 0;
       saveStore();
       renderFlashcard();
+      // Met à jour dynamiquement l'écran de configuration des volets si l'utilisateur y est
       if(document.getElementById('view-config-volets').style.display === 'block') {
         loadConfigCheckboxes();
       }
@@ -1047,6 +1048,22 @@
       if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
 
       try {
+        let sheetTitle = "";
+        // Récupération automatique du vrai nom du fichier depuis l'API Google Drive si aucun nom personnalisé n'est fourni
+        if (!customNameInput) {
+          try {
+            const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${sheetId}`, {
+              headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            const metaData = await metaRes.json();
+            if (metaData && metaData.name) {
+              sheetTitle = metaData.name;
+            }
+          } catch(err) {
+            console.warn("Impossible de récupérer le nom du fichier Drive, utilisation d'un nom par défaut.");
+          }
+        }
+
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
         const res = await fetch(url, {
           headers: { 'Authorization': 'Bearer ' + accessToken }
@@ -1055,7 +1072,8 @@
         const newList = parseCustomCSV(csvText);
 
         if(newList.length > 0) {
-          let notionName = customNameInput !== "" ? customNameInput : ("Sheet - " + new Date().toLocaleTimeString());
+          let notionName = customNameInput !== "" ? customNameInput : (sheetTitle !== "" ? sheetTitle : ("Sheet - " + new Date().toLocaleTimeString()));
+          
           store.notions[notionName] = newList;
           store.coursesMeta[notionName] = { 
             folder: targetFolder,
