@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Volets 100% Dynamiques par Cours & GPT OSS 120B</title>
+  <title>LearnCraft TDAH - Volets & Images Dynamiques & GPT OSS 120B</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -61,23 +61,13 @@
       text-align: center;
       box-sizing: border-box;
     }
-    .plant-img {
+    .dynamic-img {
       width: 100%;
       height: 200px;
       object-fit: cover;
       border-radius: 12px;
       margin-bottom: 15px;
       background-color: #eee;
-    }
-    .badge {
-      display: inline-block;
-      background: #e8f5e9;
-      color: var(--primary);
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 10px;
     }
     .details {
       text-align: left;
@@ -385,12 +375,10 @@
       const notion = store.currentNotion;
       const list = store.notions[notion] || [];
       
-      // Si les en-têtes existent dans metadata, on les utilise
       if (store.coursesMeta[notion] && store.coursesMeta[notion].headers && store.coursesMeta[notion].headers.length > 0) {
         return store.coursesMeta[notion].headers;
       }
       
-      // Sinon, on les extrait directement des clés du premier élément du cours
       if (list.length > 0) {
         const keys = Object.keys(list[0]);
         if(!store.coursesMeta[notion]) store.coursesMeta[notion] = {};
@@ -470,8 +458,8 @@
       cfg.verso = {};
 
       cfg.headers.forEach(h => {
-        const rectoEl = document.getElementById(`chk-recto-${CSS.escape(h)}`);
-        const versoEl = document.getElementById(`chk-verso-${CSS.escape(h)}`);
+        const rectoEl = document.getElementById(`chk-recto-${h}`);
+        const versoEl = document.getElementById(`chk-verso-${h}`);
         if(rectoEl) cfg.recto[h] = rectoEl.checked;
         if(versoEl) cfg.verso[h] = versoEl.checked;
       });
@@ -648,7 +636,11 @@
         let trHtml = '';
         headers.forEach(h => {
           let val = item[h] !== undefined ? item[h] : '-';
-          trHtml += `<td>${val}</td>`;
+          if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+            trHtml += `<td><a href="${val}" target="_blank" style="font-size:11px; color:var(--drive-blue);">[Lien Image]</a></td>`;
+          } else {
+            trHtml += `<td>${val}</td>`;
+          }
         });
         trHtml += `<td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>`;
         
@@ -686,7 +678,6 @@
       currentIndex = 0;
       saveStore();
       renderFlashcard();
-      // Met à jour instantanément les cases à cocher si l'écran de configuration des volets est ouvert
       if(document.getElementById('view-config-volets').style.display === 'block') {
         loadConfigCheckboxes();
       }
@@ -717,12 +708,15 @@
         let val = p[h] || '';
         if(!val) return;
 
-        if (h.toLowerCase().includes('image') || h.toLowerCase().includes('photo') || (typeof val === 'string' && val.startsWith('http'))) {
+        const isLinkImage = (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) && 
+                            (h.toLowerCase().includes('image') || h.toLowerCase().includes('photo') || h.toLowerCase().includes('url') || h.toLowerCase().includes('visuel') || h.toLowerCase().includes('illustration') || val.match(/\.(jpeg|jpg|gif|png|webp)$/i) || val.includes('unsplash') || val.includes('drive.google') || val.includes('imgur'));
+
+        if (isLinkImage) {
           if (cfg.recto[h]) {
-            rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
+            rectoContainer.innerHTML += `<img src="${val}" class="dynamic-img" onerror="this.style.display='none'">`;
           }
           if (cfg.verso[h]) {
-            versoHTML += `<p><img src="${val}" class="plant-img" style="height:120px;"></p>`;
+            versoHTML += `<p><img src="${val}" class="dynamic-img" style="height:120px;" onerror="this.style.display='none'"></p>`;
           }
         } else {
           if (cfg.recto[h]) {
