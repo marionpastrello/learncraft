@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Révisions Ludiques & Images Dynamiques</title>
+  <title>LearnCraft TDAH - Recto/Verso par Cours & Groq AI</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -15,7 +15,7 @@
       --ai-purple: #7b1fa2;
       --drive-blue: #1565c0;
       --danger: #d32f2f;
-      --warning: #f57c00;
+      --warning: #ff9800;
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,178 +24,147 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 15px;
       margin: 0;
     }
-    h1 { color: var(--primary); margin-bottom: 5px; font-size: 26px; font-weight: 700; }
+    h1 { color: var(--primary); margin-bottom: 5px; font-size: 24px; }
     
-    .nav-btns { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+    .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
     button {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      font-weight: 600;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+      font-weight: bold;
+      transition: transform 0.1s, background 0.2s;
     }
-    button:hover { background: #1b5e20; box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
-    button:active { transform: scale(0.97); }
+    button:hover { background: #1b5e20; }
+    button:active { transform: scale(0.98); }
     .btn-secondary { background: #5c6bc0; }
-    .btn-secondary:hover { background: #3f51b5; }
     .btn-warning { background: var(--warning); color: #fff; }
-    .btn-warning:hover { background: #e65100; }
     .btn-ai { background: var(--ai-purple); color: white; }
     .btn-ai:hover { background: #4a148c; }
     .btn-drive { background: var(--drive-blue); color: white; }
-    .btn-drive:hover { background: #0d47a1; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: #b71c1c; }
     
-    .container { width: 100%; max-width: 700px; }
+    .container { width: 100%; max-width: 650px; }
     
     .card {
       background: var(--card-bg);
-      border-radius: 24px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
       text-align: center;
       box-sizing: border-box;
-      border: 1px solid #eaeaea;
-      position: relative;
     }
     .plant-img {
       width: 100%;
-      max-height: 280px;
-      object-fit: contain;
-      border-radius: 16px;
-      margin-bottom: 20px;
-      background-color: #fafafa;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      border: 1px solid #eee;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      background-color: #eee;
     }
     .badge {
       display: inline-block;
       background: #e8f5e9;
       color: var(--primary);
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 4px 12px;
+      border-radius: 12px;
       font-size: 13px;
       font-weight: bold;
-      margin-bottom: 15px;
-      border: 1px solid #c8e6c9;
+      margin-bottom: 10px;
     }
     .details {
       text-align: left;
-      margin-top: 20px;
-      border-top: 2px dashed #e0e0e0;
-      padding-top: 20px;
+      margin-top: 15px;
+      border-top: 2px dashed #eee;
+      padding-top: 15px;
       display: none;
-      animation: fadeIn 0.3s ease-in-out;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-    .details p { margin: 12px 0; font-size: 15px; white-space: pre-line; line-height: 1.6; }
+    .details p { margin: 8px 0; font-size: 14px; white-space: pre-line; }
     .details strong { color: var(--primary); }
 
     .mnemonic-box {
       background: #f3e5f5;
       border-left: 4px solid var(--ai-purple);
-      padding: 14px 16px;
-      border-radius: 10px;
-      margin-top: 20px;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
       color: #4a148c;
       display: none;
-      line-height: 1.5;
     }
 
     .section-box {
       background: white;
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
       text-align: left;
       border: 1px solid #e0e0e0;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
-    .section-box h3 { margin-top: 0; color: var(--primary); font-size: 18px; }
+    .section-box h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
     input, select, textarea {
       width: 100%;
-      padding: 10px 12px;
-      margin: 6px 0 14px 0;
+      padding: 8px 10px;
+      margin: 5px 0 12px 0;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 6px;
       box-sizing: border-box;
       font-size: 14px;
       font-family: inherit;
-      background: #fff;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
     }
 
     .checkbox-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 10px;
-      font-size: 14px;
-      margin-top: 10px;
+      gap: 8px;
+      font-size: 13px;
+      margin-top: 8px;
     }
     .checkbox-grid label {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
       cursor: pointer;
-      background: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #eaeaea;
-      transition: background 0.2s;
     }
-    .checkbox-grid label:hover { background: #f1f8e9; }
-    .checkbox-grid input { width: auto; margin: 0; accent-color: var(--primary); }
-
-    .folder-group-box {
-      background: #fafbfc;
-      border: 1px solid #e1e4e8;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
+    .checkbox-grid input {
+      width: auto;
+      margin: 0;
     }
 
     .course-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 12px;
-      background: white;
-      border: 1px solid #e5e7eb;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 1px solid #eee;
       border-radius: 8px;
-      margin-top: 8px;
+      margin-bottom: 8px;
       font-size: 13px;
       gap: 10px;
       flex-wrap: wrap;
     }
 
     .table-scroll-container {
-      max-height: 250px;
+      max-height: 300px;
       overflow-x: auto;
       overflow-y: auto;
       border: 1px solid #e0e0e0;
-      border-radius: 10px;
+      border-radius: 8px;
       margin-top: 10px;
     }
 
     .preview-table {
       width: 100%;
-      min-width: 600px;
+      min-width: 800px;
       border-collapse: collapse;
       font-size: 12px;
     }
@@ -207,169 +176,203 @@
       white-space: pre-line;
     }
     .preview-table th {
-      background-color: #f5f5f5;
+      background-color: #f0f0f0;
       color: var(--primary);
       position: sticky;
       top: 0;
       z-index: 1;
     }
 
-    .qcm-options { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-    .qcm-btn {
-      background: #f8f9fa;
-      color: var(--text);
-      border: 1px solid #ccd0d5;
-      padding: 14px 16px;
-      border-radius: 12px;
-      text-align: left;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
+    .qcm-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    
+    .loading-spinner {
+      display: none;
+      color: var(--ai-purple);
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: 5px;
     }
-    .qcm-btn:hover { background: #e8f5e9; border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
 
     .sync-status {
       font-size: 12px;
       font-weight: bold;
       color: var(--drive-blue);
-      margin-bottom: 15px;
-      background: #e3f2fd;
-      padding: 6px 12px;
-      border-radius: 20px;
-      display: inline-block;
+      margin-bottom: 10px;
     }
-    .flex-row { display: flex; gap: 10px; align-items: center; }
+
+    .flex-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
 
   <h1>🌿 LearnCraft</h1>
-  <div id="sync-info" class="sync-status">💾 Stockage local, Google Drive & IA actifs</div>
+  <div id="sync-info" class="sync-status">💾 Sauvegarde locale uniquement</div>
 
   <div class="nav-btns">
-    <button onclick="switchView('flashcard')">🎴 Révision Ludique</button>
+    <button onclick="switchView('flashcard')">🎴 Révision</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
-    <button onclick="switchView('config-volets')" class="btn-warning">🎛️ Config Recto / Verso</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & Ajout</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & IA</button>
+    <button onclick="switchView('config-volets')" class="btn-warning">🎛️ Configurer Recto / Verso</button>
   </div>
 
   <div class="container">
 
-    <div id="selector-bar" class="section-box" style="padding:12px 15px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-      <div style="flex:1; min-width:220px;">
-        <label for="notion-select" style="font-size:13px; color:#555;"><strong>📂 Cours actif :</strong></label>
-        <select id="notion-select" onchange="changeNotion()"></select>
-      </div>
-      <div id="card-counter" class="badge" style="margin:0; background:#e3f2fd; color:var(--drive-blue); border-color:#90caf9;">
-        📊 Carte 1 / 1
-      </div>
+    <div id="selector-bar" class="section-box" style="padding:10px; margin-bottom:15px;">
+      <label for="notion-select"><strong>📂 Cours actif :</strong></label>
+      <select id="notion-select" onchange="changeNotion()"></select>
     </div>
 
     <!-- FLASHCARD VIEW -->
     <div id="view-flashcard" class="card">
-      <div id="recto-container"></div>
+      <!-- Conteneur dynamique du RECTO -->
+      <div id="recto-container">
+        <img id="fc-img" class="plant-img" src="" alt="Plante" style="display:none;" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
+        <span id="fc-family" class="badge" style="display:none;">Famille</span>
+        <h2 id="fc-name" style="margin: 5px 0; display:none;">Nom</h2>
+        <p id="fc-latin" style="font-style: italic; color: #666; margin-bottom: 15px; display:none;">Nom scientifique</p>
+        <p id="fc-prop-recto" style="display:none; font-weight:bold;">Propriétés</p>
+        <p id="fc-otherprop-recto" style="display:none;">Autres prop</p>
+        <p id="fc-comp-recto" style="display:none;">Composants</p>
+        <p id="fc-risks-recto" style="display:none; color:var(--danger);">Risques</p>
+      </div>
       
-      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:25px; width: 100%; padding: 14px; font-size:15px; border-radius:14px;">👀 Retourner la carte (Afficher le Verso)</button>
+      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:15px;">👁️ Afficher / Masquer le verso</button>
       
+      <!-- Conteneur dynamique du VERSO -->
       <div id="fc-details" class="details">
         <div id="verso-content-list"></div>
-        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 20px; padding: 12px; border-radius:12px;">✨ 💡 Moyen Mnémotechnique IA</button>
+        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 15px;">✨ 💡 Moyen Mnémotechnique IA</button>
         <div id="fc-mnemonic" class="mnemonic-box"></div>
       </div>
 
-      <div style="margin-top: 30px; display: flex; justify-content: space-between; gap: 15px;">
-        <button onclick="prevCard()" style="background: #78909c; flex: 1; padding: 12px; border-radius:12px;">⬅️ Précédent</button>
-        <button onclick="nextCard()" style="flex: 1; padding: 12px; border-radius:12px;">Suivant ➡️</button>
+      <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+        <button onclick="prevCard()" style="background: #78909c;">⬅️ Précédent</button>
+        <button onclick="nextCard()">Suivant ➡️</button>
       </div>
     </div>
 
     <!-- QCM VIEW -->
     <div id="view-qcm" class="card" style="display: none;">
-      <span id="qcm-badge" class="badge">🎯 Défi QCM</span>
-      <h3 id="qcm-question" style="font-size: 19px; color: var(--primary); margin-top: 10px; line-height: 1.4;">Question de révision</h3>
+      <span id="qcm-badge" class="badge">Question QCM</span>
+      <h3 id="qcm-question">Quel est le nom scientifique / propriétés ?</h3>
+      <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
       <div id="qcm-options" class="qcm-options"></div>
-      <div id="qcm-feedback" style="margin-top: 20px; font-weight: bold; font-size: 16px;"></div>
-      <button id="qcm-next-btn" onclick="renderQCM()" class="btn-primary" style="margin-top: 20px; width: 100%; padding: 12px; border-radius:12px; display: none;">Question suivante ➡️</button>
+      <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
+      <button id="qcm-next-btn" onclick="renderQCM()" style="margin-top: 15px; display: none;">Question suivante ➡️</button>
     </div>
 
-    <!-- CONFIGURATION RECTO / VERSO DYNAMIQUE PAR COURS -->
-    <div id="view-config-volets" class="section-box" style="display: none; border-left: 5px solid var(--warning);">
+    <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
+    <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
       <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Cochez les informations que vous souhaitez voir au Recto (face visible) et au Verso (caché au dos) pour ce cours spécifique.</p>
+      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> (avant le clic) et ce qui est caché au <strong>Verso</strong> (révélé après le clic) pour ce cours spécifique.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-        <div style="background: #fafafa; padding: 15px; border-radius: 12px; border:1px solid #e0e0e0;">
+        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--primary);">📤 Éléments du RECTO</h4>
-          <div id="recto-checkboxes" class="checkbox-grid"></div>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" id="recto-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
+            <label><input type="checkbox" id="recto-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
+            <label><input type="checkbox" id="recto-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
+            <label><input type="checkbox" id="recto-latin" onchange="saveCurrentCourseConfig()"> 🔬 Nom scientifique</label>
+            <label><input type="checkbox" id="recto-prop" onchange="saveCurrentCourseConfig()"> ✨ Propriétés principales</label>
+            <label><input type="checkbox" id="recto-otherProp" onchange="saveCurrentCourseConfig()"> 📌 Autres propriétés</label>
+            <label><input type="checkbox" id="recto-comp" onchange="saveCurrentCourseConfig()"> 🧪 Composants actifs</label>
+            <label><input type="checkbox" id="recto-risks" onchange="saveCurrentCourseConfig()"> ⚠️ Risques / CI</label>
+          </div>
         </div>
 
-        <div style="background: #fafafa; padding: 15px; border-radius: 12px; border:1px solid #e0e0e0;">
+        <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
           <h4 style="margin-top:0; color:var(--warning);">📥 Éléments du VERSO</h4>
-          <div id="verso-checkboxes" class="checkbox-grid"></div>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" id="verso-img" onchange="saveCurrentCourseConfig()"> 📷 Photo</label>
+            <label><input type="checkbox" id="verso-family" onchange="saveCurrentCourseConfig()"> 🏷️ Famille</label>
+            <label><input type="checkbox" id="verso-name" onchange="saveCurrentCourseConfig()"> 🌿 Nom commun</label>
+            <label><input type="checkbox" id="verso-latin" onchange="saveCurrentCourseConfig()"> 🔬 Nom scientifique</label>
+            <label><input type="checkbox" id="verso-prop" onchange="saveCurrentCourseConfig()"> ✨ Propriétés principales</label>
+            <label><input type="checkbox" id="verso-otherProp" onchange="saveCurrentCourseConfig()"> 📌 Autres propriétés</label>
+            <label><input type="checkbox" id="verso-comp" onchange="saveCurrentCourseConfig()"> 🧪 Composants actifs</label>
+            <label><input type="checkbox" id="verso-risks" onchange="saveCurrentCourseConfig()"> ⚠️ Risques / CI</label>
+          </div>
         </div>
       </div>
 
-      <button onclick="switchView('flashcard')" class="btn-primary" style="width:100%; margin-top: 20px; padding: 12px; border-radius:12px;">💾 Enregistrer & Retourner aux révisions</button>
+      <button onclick="switchView('flashcard')" style="width:100%; margin-top: 15px;">💾 Enregistrer & Retourner aux révisions</button>
     </div>
 
-    <!-- GESTIONNAIRE, GOOGLE DRIVE, GOOGLE SHEET & AJOUT MANUEL -->
+    <!-- GESTIONNAIRE, DRIVE & IA VIEW -->
     <div id="view-manager" style="display: none;">
 
-      <!-- CONFIGURATION API GROQ (IA) -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Mnémotechniques IA)</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Indiquez votre clé API Groq pour générer instantanément des astuces mnémotechniques personnalisées par l'IA.</p>
-        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
-      </div>
-
-      <!-- GOOGLE DRIVE & GOOGLE SHEET -->
-      <div class="section-box" style="border-left: 5px solid var(--drive-blue);">
-        <h3 style="color: var(--drive-blue);">☁️ Intégration Google Drive & Google Sheets</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Connectez votre compte pour importer directement vos feuilles de calcul Google Sheets au format CSV ou sélectionner vos cours stockés dans Drive.</p>
-        <div class="flex-row" style="margin-bottom:12px;">
-          <button onclick="connectGoogleDrive()" class="btn-drive" style="flex:1;">🔗 Connecter Google Drive / Sheets</button>
-        </div>
-        <input type="text" id="gdrive-url-input" placeholder="Ou coller le lien public d'un Google Sheet publié en CSV..." style="margin-bottom:8px;">
-        <button onclick="importGoogleSheetUrl()" class="btn-secondary" style="width:100%;">📥 Importer depuis ce lien Google Sheet</button>
-      </div>
-
-      <!-- IMPORT CSV LOCAL -->
-      <div class="section-box" style="border-left: 5px solid var(--primary);">
-        <h3 style="color:var(--primary);">📁 Importer un tableau CSV</h3>
-        <label><strong>Dossier de destination :</strong></label>
-        <select id="import-folder-select" style="margin-bottom:12px;"></select>
-        <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
-      </div>
-
-      <!-- AJOUT MANUEL DE CARTE -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">✍️ Ajouter une carte manuellement au cours actif</h3>
-        <div id="manual-inputs-container"></div>
-        <button onclick="addManualCard()" class="btn-ai" style="width:100%; margin-top:10px;">➕ Ajouter cette carte</button>
-      </div>
-
-      <!-- GESTION DES DOSSIERS & COURS -->
-      <div class="section-box" style="border-left: 5px solid var(--danger);">
-        <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
-        <div class="flex-row" style="margin-bottom:12px;">
-          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier..." style="margin:0;">
-          <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap; padding: 10px 14px;">➕ Créer dossier</button>
-        </div>
-        <div id="courses-list"></div>
-      </div>
-
-      <!-- APERÇU TABLEAU -->
-      <div class="section-box" style="border-left: 5px solid var(--secondary);">
-        <h3>📋 Aperçu des données du cours actif</h3>
+      <!-- INSPECTEUR & PRÉVISUALISATION DES CARTES -->
+      <div class="section-box" style="border-left: 4px solid var(--primary);">
+        <h3>📋 Visualisation complète des cartes du cours</h3>
         <div class="table-scroll-container">
           <table class="preview-table">
             <thead>
-              <tr id="preview-table-head"></tr>
+              <tr>
+                <th>Nom commun</th>
+                <th>Nom scientifique</th>
+                <th>Famille</th>
+                <th>Photo (URL)</th>
+                <th>Propriétés principales</th>
+                <th>Autres propriétés</th>
+                <th>Composants actifs</th>
+                <th>Risques / CI</th>
+                <th>Action</th>
+              </tr>
             </thead>
             <tbody id="preview-table-body"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- GESTION ET DÉPLACEMENT DANS LES DOSSIERS -->
+      <div class="section-box" style="border-left: 4px solid var(--danger);">
+        <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
+        <div class="flex-row" style="margin-bottom:12px;">
+          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier (ex: Pharmacologie)" style="margin:0;">
+          <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
+        </div>
+        <div id="courses-list"></div>
+      </div>
+
+      <!-- SYNCHRONISATION GOOGLE DRIVE PRIVÉ & SHEET -->
+      <div class="section-box" style="border-left: 4px solid var(--drive-blue);">
+        <h3 style="color: var(--drive-blue);">🔒 Synchronisation Google Drive & Sheets</h3>
+        <label><strong>Ranger l'import dans ce dossier :</strong></label>
+        <select id="import-folder-select" style="margin-bottom:10px;"></select>
+
+        <label><strong>ID Client Google Cloud :</strong></label>
+        <input type="text" id="client-id-input" placeholder="000000000000-xxx.apps.googleusercontent.com" onchange="saveClientId()">
+        <button onclick="connectGoogleDrive()" class="btn-drive" style="width:100%;">🔗 1. Connecter mon Google Drive</button>
+        
+        <label style="margin-top: 10px; display:block;"><strong>ID du fichier Google Sheet :</strong></label>
+        <input type="text" id="sheet-id-input" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" onchange="saveSheetId()">
+        <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
+      </div>
+      
+      <!-- CONFIGURATION API GROQ (IA) -->
+      <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (IA ultra-rapide)</h3>
+        <p style="font-size:12px; color:#666;">Obtiens ta clé gratuite sur <a href="https://console.groq.com" target="_blank">console.groq.com</a></p>
+        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
+      </div>
+
+      <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
+      <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA (Groq)</h3>
+        <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales pour le sommeil..."></textarea>
+        <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
+        <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
+      </div>
+
+      <!-- IMPORT CSV LOCAL -->
+      <div class="section-box">
+        <h3>📁 Importer un fichier CSV local</h3>
+        <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
       </div>
 
     </div>
@@ -380,18 +383,19 @@
     let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
       currentNotion: "Plantes Médicinales",
       apiKey: "",
-      folders: ["Botanique", "Général"],
+      clientId: "",
+      sheetId: "",
+      folders: ["Botanique", "Pharmacologie", "Général"],
       coursesMeta: {
         "Plantes Médicinales": { 
           folder: "Botanique",
-          headers: ["Nom commun", "Nom scientifique", "Famille", "Photo", "Utilisation"],
-          recto: { "Nom commun": true, "Photo": true },
-          verso: { "Nom scientifique": true, "Famille": true, "Utilisation": true }
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
         }
       },
       notions: {
         "Plantes Médicinales": [
-          { "Nom commun": "Acore odorant", "Nom scientifique": "Acorus calamus", "Famille": "Araceae", "Photo": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80", "Utilisation": "Tonique amer et carminatif" }
+          { nom: "Acore odorant / Acore", latin: "Acorus calamus", famille: "Araceae", image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80", proprietes: "Tonique amer\nCarminatif\nCicatrisant muqueuse gastrique", autresProp: "Anti-infectieux\nAntifongique", composition: "HE (β-asarone)\nHétéroside amer", risques: "N/A" }
         ]
       }
     };
@@ -400,42 +404,25 @@
     if(!store.coursesMeta) store.coursesMeta = {};
 
     let currentIndex = 0;
+    let accessToken = null;
+    let driveFileId = null;
 
     function getActiveConfig() {
       const notion = store.currentNotion;
-      const currentList = store.notions[notion] || [];
-      
-      let headers = [];
-      if (store.coursesMeta[notion] && store.coursesMeta[notion].headers && store.coursesMeta[notion].headers.length > 0) {
-        headers = store.coursesMeta[notion].headers;
-      } else if (currentList.length > 0) {
-        headers = Object.keys(currentList[0]);
-      } else {
-        headers = ["Nom", "Description"];
-      }
-
       if (!store.coursesMeta[notion]) {
-        store.coursesMeta[notion] = { folder: "Général", headers: headers, recto: {}, verso: {} };
+        store.coursesMeta[notion] = {
+          folder: "Général",
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+        };
       }
-      
-      let cfg = store.coursesMeta[notion];
-      if (!cfg.headers) cfg.headers = headers;
-
-      if (!cfg.recto || Object.keys(cfg.recto).length === 0) {
-        cfg.recto = {};
-        cfg.verso = {};
-        headers.forEach((h, index) => {
-          if (index === 0 || h.toLowerCase().includes('photo') || h.toLowerCase().includes('image')) {
-            cfg.recto[h] = true;
-            cfg.verso[h] = false;
-          } else {
-            cfg.recto[h] = false;
-            cfg.verso[h] = true;
-          }
-        });
+      if (!store.coursesMeta[notion].recto) {
+        store.coursesMeta[notion].recto = { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false };
       }
-
-      return cfg;
+      if (!store.coursesMeta[notion].verso) {
+        store.coursesMeta[notion].verso = { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true };
+      }
+      return store.coursesMeta[notion];
     }
 
     function saveStore() {
@@ -443,120 +430,74 @@
       updateSelectOptions();
       renderCoursesList();
       renderPreviewTable();
-      renderManualInputs();
+      if(accessToken) syncToDrive();
     }
 
     function saveCurrentCourseConfig() {
       const cfg = getActiveConfig();
-      cfg.recto = {};
-      cfg.verso = {};
-
-      cfg.headers.forEach(h => {
-        const rectoEl = document.getElementById(`chk-recto-${h}`);
-        const versoEl = document.getElementById(`chk-verso-${h}`);
-        if(rectoEl) cfg.recto[h] = rectoEl.checked;
-        if(versoEl) cfg.verso[h] = versoEl.checked;
-      });
-
+      cfg.recto = {
+        img: document.getElementById('recto-img').checked,
+        family: document.getElementById('recto-family').checked,
+        name: document.getElementById('recto-name').checked,
+        latin: document.getElementById('recto-latin').checked,
+        prop: document.getElementById('recto-prop').checked,
+        otherProp: document.getElementById('recto-otherProp').checked,
+        comp: document.getElementById('recto-comp').checked,
+        risks: document.getElementById('recto-risks').checked
+      };
+      cfg.verso = {
+        img: document.getElementById('verso-img').checked,
+        family: document.getElementById('verso-family').checked,
+        name: document.getElementById('verso-name').checked,
+        latin: document.getElementById('verso-latin').checked,
+        prop: document.getElementById('verso-prop').checked,
+        otherProp: document.getElementById('verso-otherProp').checked,
+        comp: document.getElementById('verso-comp').checked,
+        risks: document.getElementById('verso-risks').checked
+      };
       saveStore();
+      renderFlashcard();
     }
 
     function loadConfigCheckboxes() {
       const cfg = getActiveConfig();
       document.getElementById('config-course-title').innerText = store.currentNotion;
-
-      const rectoContainer = document.getElementById('recto-checkboxes');
-      const versoContainer = document.getElementById('verso-checkboxes');
-      rectoContainer.innerHTML = '';
-      versoContainer.innerHTML = '';
-
-      cfg.headers.forEach(h => {
-        const isRectoChecked = cfg.recto[h] !== undefined ? cfg.recto[h] : false;
-        const isVersoChecked = cfg.verso[h] !== undefined ? cfg.verso[h] : true;
-
-        rectoContainer.innerHTML += `
-          <label><input type="checkbox" id="chk-recto-${h}" ${isRectoChecked ? 'checked' : ''} onchange="saveCurrentCourseConfig()"> 📌 ${h}</label>
-        `;
-        versoContainer.innerHTML += `
-          <label><input type="checkbox" id="chk-verso-${h}" ${isVersoChecked ? 'checked' : ''} onchange="saveCurrentCourseConfig()"> 📌 ${h}</label>
-        `;
-      });
-    }
-
-    function renderManualInputs() {
-      const container = document.getElementById('manual-inputs-container');
-      if(!container) return;
-      container.innerHTML = '';
-      const cfg = getActiveConfig();
-
-      cfg.headers.forEach(h => {
-        container.innerHTML += `
-          <label style="font-size:12px; font-weight:600; color:#444;">${h} :</label>
-          <input type="text" id="manual-input-${h}" placeholder="Valeur pour ${h}..." style="margin-bottom:8px;">
-        `;
-      });
-    }
-
-    function addManualCard() {
-      const cfg = getActiveConfig();
-      let newCard = {};
-      let hasData = false;
-
-      cfg.headers.forEach(h => {
-        const el = document.getElementById(`manual-input-${h}`);
-        const val = el ? el.value.trim() : '';
-        newCard[h] = val;
-        if(val) hasData = true;
-      });
-
-      if(!hasData) {
-        alert("Veuillez remplir au moins un champ !");
-        return;
-      }
-
-      if(!store.notions[store.currentNotion]) {
-        store.notions[store.currentNotion] = [];
-      }
-
-      store.notions[store.currentNotion].push(newCard);
-      saveStore();
       
-      cfg.headers.forEach(h => {
-        const el = document.getElementById(`manual-input-${h}`);
-        if(el) el.value = '';
-      });
+      // Recto
+      document.getElementById('recto-img').checked = cfg.recto.img;
+      document.getElementById('recto-family').checked = cfg.recto.family;
+      document.getElementById('recto-name').checked = cfg.recto.name;
+      document.getElementById('recto-latin').checked = cfg.recto.latin;
+      document.getElementById('recto-prop').checked = cfg.recto.prop;
+      document.getElementById('recto-otherProp').checked = cfg.recto.otherProp;
+      document.getElementById('recto-comp').checked = cfg.recto.comp;
+      document.getElementById('recto-risks').checked = cfg.recto.risks;
 
-      alert("✨ Nouvelle carte ajoutée avec succès !");
-      renderFlashcard();
-    }
-
-    function connectGoogleDrive() {
-      alert("☁️ Simulation de connexion Google Drive : Vos fichiers Google Sheets peuvent être exportés en CSV puis importés ici, ou vous pouvez coller directement le lien de partage CSV de votre Google Sheet ci-dessous.");
-    }
-
-    async function importGoogleSheetUrl() {
-      let url = document.getElementById('gdrive-url-input').value.trim();
-      if(!url) {
-        alert("Veuillez coller un lien valide.");
-        return;
-      }
-      if(url.includes('/edit')) {
-        url = url.replace(/\/edit.*$/, '/export?format=csv');
-      }
-
-      try {
-        const response = await fetch(url);
-        const text = await response.text();
-        processCSVImport(text, "GoogleSheet_Cours");
-      } catch(e) {
-        alert("⚠️ Erreur lors du chargement du Google Sheet. Assurez-vous que le lien est public ou accessible en CSV.");
-      }
+      // Verso
+      document.getElementById('verso-img').checked = cfg.verso.img;
+      document.getElementById('verso-family').checked = cfg.verso.family;
+      document.getElementById('verso-name').checked = cfg.verso.name;
+      document.getElementById('verso-latin').checked = cfg.verso.latin;
+      document.getElementById('verso-prop').checked = cfg.verso.prop;
+      document.getElementById('verso-otherProp').checked = cfg.verso.otherProp;
+      document.getElementById('verso-comp').checked = cfg.verso.comp;
+      document.getElementById('verso-risks').checked = cfg.verso.risks;
     }
 
     function saveApiKey() {
       store.apiKey = document.getElementById('api-key-input').value.trim();
       saveStore();
-      alert("🔑 Clé API Groq enregistrée avec succès !");
+      alert("Clé API Groq enregistrée !");
+    }
+
+    function saveClientId() {
+      store.clientId = document.getElementById('client-id-input').value.trim();
+      saveStore();
+    }
+
+    function saveSheetId() {
+      store.sheetId = document.getElementById('sheet-id-input').value.trim();
+      saveStore();
     }
 
     function createNewFolder() {
@@ -575,7 +516,6 @@
     function updateSelectOptions() {
       const select = document.getElementById('notion-select');
       const folderImportSelect = document.getElementById('import-folder-select');
-      if(!select || !folderImportSelect) return;
       select.innerHTML = '';
       folderImportSelect.innerHTML = '';
 
@@ -611,10 +551,9 @@
         }
       });
 
-      if(store.apiKey) {
-        const apiKeyInput = document.getElementById('api-key-input');
-        if(apiKeyInput) apiKeyInput.value = store.apiKey;
-      }
+      if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
+      if(store.clientId) document.getElementById('client-id-input').value = store.clientId;
+      if(store.sheetId) document.getElementById('sheet-id-input').value = store.sheetId;
     }
 
     function moveCourseToFolder(courseKey, newFolder) {
@@ -625,80 +564,58 @@
 
     function renderCoursesList() {
       const container = document.getElementById('courses-list');
-      if(!container) return;
       container.innerHTML = '';
-      
-      store.folders.forEach(folder => {
-        const folderBox = document.createElement('div');
-        folderBox.className = 'folder-group-box';
-        folderBox.innerHTML = `<h4 style="margin:0 0 10px 0; color:var(--primary);">📁 ${folder}</h4>`;
+      const keys = Object.keys(store.notions);
+      if(keys.length === 0) {
+        container.innerHTML = '<p style="font-size:13px; color:#888;">Aucun cours enregistré.</p>';
+        return;
+      }
+      keys.forEach(key => {
+        const currentFolder = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
+        
+        let folderOptions = store.folders.map(f => 
+          `<option value="${f}" ${f === currentFolder ? 'selected' : ''}>${f}</option>`
+        ).join('');
 
-        const keys = Object.keys(store.notions).filter(key => {
-          const f = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
-          return f === folder;
-        });
-
-        if (keys.length === 0) {
-          folderBox.innerHTML += `<p style="font-size:12px; color:#888; margin:0;">Aucun cours dans ce dossier.</p>`;
-        } else {
-          keys.forEach(key => {
-            let folderOptions = store.folders.map(f => 
-              `<option value="${f}" ${f === folder ? 'selected' : ''}>${f}</option>`
-            ).join('');
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'course-item';
-            itemDiv.innerHTML = `
-              <div style="flex:1;">
-                <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
-              </div>
-              <div class="flex-row">
-                <span style="font-size:11px;">Dossier:</span>
-                <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:4px 6px; font-size:11px; width:auto;">
-                  ${folderOptions}
-                </select>
-                <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:5px 8px; font-size:11px;">🗑️</button>
-              </div>
-            `;
-            folderBox.appendChild(itemDiv);
-          });
-        }
-        container.appendChild(folderBox);
+        const div = document.createElement('div');
+        div.className = 'course-item';
+        div.innerHTML = `
+          <div style="flex:1;">
+            <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
+          </div>
+          <div class="flex-row">
+            <span style="font-size:11px;">Dossier:</span>
+            <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:2px 4px; font-size:11px; width:auto;">
+              ${folderOptions}
+            </select>
+            <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:4px 8px; font-size:11px;">🗑️ Supprimer</button>
+          </div>
+        `;
+        container.appendChild(div);
       });
     }
 
     function renderPreviewTable() {
-      const thead = document.getElementById('preview-table-head');
       const tbody = document.getElementById('preview-table-body');
-      if(!thead || !tbody) return;
-      thead.innerHTML = '';
       tbody.innerHTML = '';
-
-      const cfg = getActiveConfig();
       const list = getCurrentList();
-
-      let headHtml = '';
-      cfg.headers.forEach(h => {
-        headHtml += `<th>${h}</th>`;
-      });
-      headHtml += `<th>Action</th>`;
-      thead.innerHTML = headHtml;
-
       if(list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${cfg.headers.length + 1}" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>';
         return;
       }
-
       list.forEach((item, idx) => {
-        let trHtml = '';
-        cfg.headers.forEach(h => {
-          let val = item[h] !== undefined ? item[h] : '-';
-          trHtml += `<td>${val}</td>`;
-        });
-        trHtml += `<td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:3px 6px; font-size:10px;">❌</button></td>`;
-        
         const tr = document.createElement('tr');
-        tr.innerHTML = trHtml;
+        tr.innerHTML = `
+          <td><strong>${item.nom || '-'}</strong></td>
+          <td><em>${item.latin || '-'}</em></td>
+          <td>${item.famille || '-'}</td>
+          <td>${item.image ? '📷 Présente' : '-'}</td>
+          <td>${item.proprietes || '-'}</td>
+          <td>${item.autresProp || '-'}</td>
+          <td>${item.composition || '-'}</td>
+          <td>${item.risques || '-'}</td>
+          <td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:2px 6px; font-size:10px;">❌</button></td>
+        `;
         tbody.appendChild(tr);
       });
     }
@@ -727,13 +644,10 @@
     }
 
     function changeNotion() {
-      const select = document.getElementById('notion-select');
-      if(select) {
-        store.currentNotion = select.value;
-        currentIndex = 0;
-        saveStore();
-        renderFlashcard();
-      }
+      store.currentNotion = document.getElementById('notion-select').value;
+      currentIndex = 0;
+      saveStore();
+      renderFlashcard();
     }
 
     function getCurrentList() {
@@ -743,60 +657,54 @@
     function renderFlashcard() {
       const list = getCurrentList();
       const cfg = getActiveConfig();
-      const rectoContainer = document.getElementById('recto-container');
-      const versoList = document.getElementById('verso-content-list');
-      const counterBadge = document.getElementById('card-counter');
-      
-      if(!rectoContainer) return;
-      rectoContainer.innerHTML = '';
-      versoList.innerHTML = '';
+      const recto = cfg.recto;
+      const verso = cfg.verso;
+
+      const imgEl = document.getElementById('fc-img');
+      const familyEl = document.getElementById('fc-family');
+      const nameEl = document.getElementById('fc-name');
+      const latinEl = document.getElementById('fc-latin');
+      const propRecto = document.getElementById('fc-prop-recto');
+      const otherPropRecto = document.getElementById('fc-otherprop-recto');
+      const compRecto = document.getElementById('fc-comp-recto');
+      const risksRecto = document.getElementById('fc-risks-recto');
 
       if (list.length === 0) {
-        counterBadge.innerText = `📊 0 / 0 cartes`;
-        rectoContainer.innerHTML = '<h3 style="color:#888;">📭 Ce cours est vide. Importez un tableau ou ajoutez une carte !</h3>';
+        nameEl.style.display = 'block';
+        nameEl.innerText = "Aucune carte";
+        latinEl.style.display = 'none';
+        familyEl.style.display = 'none';
+        imgEl.style.display = 'none';
         return;
       }
 
-      if(currentIndex >= list.length) currentIndex = 0;
-      counterBadge.innerText = `📊 Carte ${currentIndex + 1} / ${list.length}`;
-
       const p = list[currentIndex];
+
+      // --- RENDU DU RECTO ---
+      if (recto.img && p.image) { imgEl.style.display = 'block'; imgEl.src = p.image; } else { imgEl.style.display = 'none'; }
+      if (recto.family && p.famille) { familyEl.style.display = 'inline-block'; familyEl.innerText = p.famille; } else { familyEl.style.display = 'none'; }
+      if (recto.name && p.nom) { nameEl.style.display = 'block'; nameEl.innerText = p.nom; } else { nameEl.style.display = 'none'; }
+      if (recto.latin && p.latin) { latinEl.style.display = 'block'; latinEl.innerText = p.latin; } else { latinEl.style.display = 'none'; }
+      
+      if (recto.prop && p.proprietes) { propRecto.style.display = 'block'; propRecto.innerText = "✨ " + p.proprietes; } else { propRecto.style.display = 'none'; }
+      if (recto.otherProp && p.autresProp) { otherPropRecto.style.display = 'block'; otherPropRecto.innerText = "📌 " + p.autresProp; } else { otherPropRecto.style.display = 'none'; }
+      if (recto.comp && p.composition) { compRecto.style.display = 'block'; compRecto.innerText = "🧪 " + p.composition; } else { compRecto.style.display = 'none'; }
+      if (recto.risks && p.risques) { risksRecto.style.display = 'block'; risksRecto.innerText = "⚠️ " + p.risques; } else { risksRecto.style.display = 'none'; }
+
+      // --- RENDU DU VERSO ---
       let versoHTML = '';
+      if (verso.img && p.image) versoHTML += `<p><img src="${p.image}" class="plant-img" style="height:120px;"></p>`;
+      if (verso.family && p.famille) versoHTML += `<p><strong>🏷️ Famille :</strong> ${p.famille}</p>`;
+      if (verso.name && p.nom) versoHTML += `<p><strong>🌿 Nom commun :</strong> ${p.nom}</p>`;
+      if (verso.latin && p.latin) versoHTML += `<p><strong>🔬 Nom scientifique :</strong> <em>${p.latin}</em></p>`;
+      if (verso.prop && p.proprietes) versoHTML += `<p><strong>✨ Propriétés principales :</strong> ${p.proprietes}</p>`;
+      if (verso.otherProp && p.autresProp) versoHTML += `<p><strong>📌 Autres propriétés :</strong> ${p.autresProp}</p>`;
+      if (verso.comp && p.composition) versoHTML += `<p><strong>🧪 Composants actifs :</strong> ${p.composition}</p>`;
+      if (verso.risks && p.risques) versoHTML += `<p style="color:var(--danger);"><strong>⚠️ Risques / Contre-indications :</strong> ${p.risques}</p>`;
 
-      cfg.headers.forEach(h => {
-        let val = p[h] || '';
-        if(!val) return;
-
-        // Détection universelle et robuste des images (URLs ou en-têtes explicites)
-        const isImage = (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) && 
-                        (h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('url') || h.toLowerCase().includes('visuel') || h.toLowerCase().includes('illustration') || val.match(/\.(jpeg|jpg|gif|png|webp)$/i) || val.includes('unsplash') || val.includes('drive.google') || val.includes('imgur'));
-
-        if (cfg.recto && cfg.recto[h]) {
-          if (isImage) {
-            rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
-          } else {
-            rectoContainer.innerHTML += `<div style="margin: 10px 0; font-size: 18px; font-weight: 600; color: var(--primary);">📌 ${h} : ${val}</div>`;
-          }
-        }
-
-        if (cfg.verso && cfg.verso[h]) {
-          if (isImage) {
-            versoHTML += `<p><strong>📷 ${h} :</strong><br><img src="${val}" class="plant-img" style="max-height:180px; margin-top:8px;" onerror="this.style.display='none'"></p>`;
-          } else {
-            versoHTML += `<p><strong>💡 ${h} :</strong> ${val}</p>`;
-          }
-        }
-      });
-
-      if(!rectoContainer.innerHTML) {
-        rectoContainer.innerHTML = `<p style="color:#e65100;">⚠️ Aucun élément configuré pour le Recto. Allez dans <b>🎛️ Config Recto / Verso</b>.</p>`;
-      }
-
-      versoList.innerHTML = versoHTML || `<p style="color:#888;">Aucun élément configuré pour le Verso.</p>`;
-      const detailsEl = document.getElementById('fc-details');
-      const mnemonicEl = document.getElementById('fc-mnemonic');
-      if(detailsEl) detailsEl.style.display = 'none';
-      if(mnemonicEl) mnemonicEl.style.display = 'none';
+      document.getElementById('verso-content-list').innerHTML = versoHTML;
+      document.getElementById('fc-details').style.display = 'none';
+      document.getElementById('fc-mnemonic').style.display = 'none';
     }
 
     function toggleDetails() {
@@ -844,191 +752,263 @@
 
     function parseCustomCSV(csvText) {
       const rows = parseCSVMatrix(csvText);
-      if (rows.length < 2) return { headers: [], data: [] };
+      if (rows.length < 2) return [];
 
-      const headers = rows[0].map(h => h.trim());
-      let data = [];
-
+      let list = [];
       for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i];
-        if (cols.length >= 1 && cols[0].trim() !== '') {
-          let item = {};
-          headers.forEach((h, index) => {
-            item[h] = cols[index] !== undefined ? cols[index].trim() : '';
+        const cleanCols = rows[i].map(c => c.trim());
+
+        if (cleanCols.length >= 1 && cleanCols[0] !== '') {
+          let rawNom = cleanCols[0] || '';
+          let latin = cleanCols[1] || '';
+          let nomFr = rawNom;
+
+          if (rawNom.includes('(') && rawNom.includes(')')) {
+            const match = rawNom.match(/(.*?)\n*\((.*?)\)/s);
+            if (match) {
+              latin = latin || match[1].trim();
+              nomFr = match[2].trim();
+            }
+          }
+
+          list.push({
+            nom: nomFr,
+            latin: latin,
+            famille: cleanCols[2] || 'Général',
+            image: cleanCols[3] || '',
+            proprietes: cleanCols[4] || 'N/A',
+            autresProp: cleanCols[5] || '',
+            composition: cleanCols[6] || 'N/A',
+            risques: cleanCols[7] || ''
           });
-          data.push(item);
         }
       }
-      return { headers, data };
+      return list;
     }
 
-    function processCSVImport(text, defaultName) {
-      const parsed = parseCustomCSV(text);
-      if (parsed.data.length > 0) {
-        const courseName = defaultName || "Nouveau Cours";
-        const folderSelect = document.getElementById('import-folder-select');
-        const folder = folderSelect ? folderSelect.value : "Général";
-        
-        store.notions[courseName] = parsed.data;
-        
-        let rectoConfig = {};
-        let versoConfig = {};
-        parsed.headers.forEach((h, idx) => {
-          if (idx === 0 || h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('nom')) {
-            rectoConfig[h] = true;
-            versoConfig[h] = false;
-          } else {
-            rectoConfig[h] = false;
-            versoConfig[h] = true;
+    async function importGoogleSheet() {
+      const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
+      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
+      if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
+      if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
+
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+        const csvText = await res.text();
+        const newList = parseCustomCSV(csvText);
+
+        if(newList.length > 0) {
+          const notionName = "Monographie Sheet";
+          store.notions[notionName] = newList;
+          store.coursesMeta[notionName] = { folder: targetFolder };
+          store.currentNotion = notionName;
+          saveStore();
+          alert(`Google Sheet chargé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
+          switchView('flashcard');
+        } else {
+          alert("Impossible de lire les données du fichier Google Sheet.");
+        }
+      } catch(e) {
+        alert("Erreur lors du chargement du Google Sheet : " + e.message);
+      }
+    }
+
+    function connectGoogleDrive() {
+      if(!store.clientId) return alert("Renseigne d'abord ton ID Client Google !");
+
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: store.clientId,
+        scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
+        callback: async (response) => {
+          if (response.access_token) {
+            accessToken = response.access_token;
+            document.getElementById('sync-info').innerText = "☁️ Connecté à ton Drive Privé";
+            alert("Connecté à Google Drive avec succès !");
           }
+        },
+      });
+      client.requestAccessToken();
+    }
+
+    async function syncToDrive() {
+      if(!accessToken) return;
+      document.getElementById('sync-info').innerText = "🔄 Synchronisation...";
+
+      const fileContent = JSON.stringify(store);
+      const file = new Blob([fileContent], { type: 'application/json' });
+      const metadata = { name: 'learncraft_private_db.json', mimeType: 'application/json' };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', file);
+
+      let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      let method = 'POST';
+
+      if(driveFileId) {
+        url = `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`;
+        method = 'PATCH';
+      }
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+          body: form
+        });
+        const data = await res.json();
+        driveFileId = data.id;
+        document.getElementById('sync-info').innerText = "☁️ Synchro Drive à jour";
+      } catch (e) {
+        document.getElementById('sync-info').innerText = "❌ Erreur Synchro";
+      }
+    }
+
+    // --- APPEL API GROQ (UTILISANT LE MODÈLE ACTIF INSTANT) ---
+    async function callGroqAPI(promptText) {
+      if(!store.apiKey) {
+        alert("Pense à configurer ta clé API Groq dans l'onglet Réglages !");
+        return null;
+      }
+
+      const url = "https://api.groq.com/openai/v1/chat/completions";
+      
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + store.apiKey
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-8b-instant",
+            messages: [{ role: "user", content: promptText }]
+          })
         });
 
-        store.coursesMeta[courseName] = {
-          folder: folder,
-          headers: parsed.headers,
-          recto: rectoConfig,
-          verso: versoConfig
-        };
+        const data = await response.json();
 
-        store.currentNotion = courseName;
-        currentIndex = 0;
-        saveStore();
-        alert(`✨ Cours "${courseName}" (${parsed.data.length} cartes) importé avec succès !`);
-        switchView('flashcard');
-      } else {
-        alert("Erreur : Impossible de lire ce fichier CSV.");
+        if (data.error) {
+          alert(`Erreur API Groq : ${data.error.message}`);
+          return null;
+        }
+
+        if (data.choices && data.choices.length > 0) {
+          return data.choices[0].message.content;
+        }
+      } catch (err) {
+        alert("Erreur réseau avec Groq : " + err.message);
       }
-    }
-
-    function importLocalCSV(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        processCSVImport(e.target.result, file.name.replace(/\.[^/.]+$/, ""));
-      };
-      reader.readAsText(file);
-    }
-
-    function switchView(viewName) {
-      document.getElementById('view-flashcard').style.display = 'none';
-      document.getElementById('view-qcm').style.display = 'none';
-      document.getElementById('view-manager').style.display = 'none';
-      document.getElementById('view-config-volets').style.display = 'none';
-
-      if (viewName === 'flashcard') {
-        document.getElementById('view-flashcard').style.display = 'block';
-        renderFlashcard();
-      } else if (viewName === 'qcm') {
-        document.getElementById('view-qcm').style.display = 'block';
-        renderQCM();
-      } else if (viewName === 'manager') {
-        document.getElementById('view-manager').style.display = 'block';
-        renderCoursesList();
-        renderPreviewTable();
-        renderManualInputs();
-      } else if (viewName === 'config-volets') {
-        document.getElementById('view-config-volets').style.display = 'block';
-        loadConfigCheckboxes();
-      }
-    }
-
-    function renderQCM() {
-      const list = getCurrentList();
-      const cfg = getActiveConfig();
-      const feedback = document.getElementById('qcm-feedback');
-      const nextBtn = document.getElementById('qcm-next-btn');
-      if(feedback) feedback.innerText = '';
-      if(nextBtn) nextBtn.style.display = 'none';
-
-      if (list.length < 2) {
-        document.getElementById('qcm-question').innerText = "⚠️ Il faut au moins 2 cartes dans le cours pour lancer le mode QCM.";
-        document.getElementById('qcm-options').innerHTML = '';
-        return;
-      }
-
-      let qcmCurrentCard = list[Math.floor(Math.random() * list.length)];
-      const primaryHeader = cfg.headers[0] || 'Nom';
-      const secondaryHeader = cfg.headers.find(h => !h.toLowerCase().includes('photo') && !h.toLowerCase().includes('image')) || primaryHeader;
-      
-      document.getElementById('qcm-question').innerText = `🎯 À quel élément correspond : "${qcmCurrentCard[primaryHeader]}" ?`;
-      
-      let options = [qcmCurrentCard];
-      while (options.length < 3 && options.length < list.length) {
-        let randCard = list[Math.floor(Math.random() * list.length)];
-        if (!options.includes(randCard)) options.push(randCard);
-      }
-      options.sort(() => Math.random() - 0.5);
-
-      const optionsContainer = document.getElementById('qcm-options');
-      optionsContainer.innerHTML = '';
-      
-      options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'qcm-btn';
-        btn.innerText = opt[secondaryHeader] || opt[primaryHeader];
-        btn.onclick = () => checkQCMAnswer(opt, qcmCurrentCard, btn);
-        optionsContainer.appendChild(btn);
-      });
-    }
-
-    function checkQCMAnswer(selected, correct, btn) {
-      const feedback = document.getElementById('qcm-feedback');
-      const nextBtn = document.getElementById('qcm-next-btn');
-      if (selected === correct) {
-        feedback.style.color = 'var(--primary)';
-        feedback.innerText = "✅ Bonne réponse ! Bravo 🎉";
-        btn.style.background = "#e8f5e9";
-        btn.style.borderColor = "var(--primary)";
-        nextBtn.style.display = 'block';
-      } else {
-        feedback.style.color = 'var(--danger)';
-        feedback.innerText = "❌ Oups, ce n'est pas la bonne réponse. Essaie encore !";
-        btn.style.background = "#ffebee";
-        btn.style.borderColor = "var(--danger)";
-      }
+      return null;
     }
 
     async function generateMnemonic() {
       const list = getCurrentList();
       if(list.length === 0) return;
       const p = list[currentIndex];
-      const mnemonicBox = document.getElementById('fc-mnemonic');
+
+      const box = document.getElementById('fc-mnemonic');
+      box.style.display = 'block';
+      box.innerText = "⚡ L'IA réfléchit à une astuce...";
+
+      const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de la plante '${p.nom}'. Maximum 2 phrases.`;
       
-      if(!store.apiKey) {
-        alert("Veuillez renseigner votre clé API Groq dans l'onglet réglages ⚙️ pour activer l'IA !");
-        return;
-      }
-
-      mnemonicBox.style.display = 'block';
-      mnemonicBox.innerText = "✨ Génération du moyen mnémotechnique par l'IA en cours...";
-
-      try {
-        const promptText = `Crée un moyen mnémotechnique court, original et facile à retenir pour mémoriser ces données : ${JSON.stringify(p)}`;
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: promptText }]
-          })
-        });
-        const data = await response.json();
-        if(data.choices && data.choices[0]) {
-          mnemonicBox.innerText = "💡 " + data.choices[0].message.content;
-        } else {
-          mnemonicBox.innerText = "⚠️ Erreur lors de la génération par l'IA.";
-        }
-      } catch (e) {
-        mnemonicBox.innerText = "⚠️ Erreur de connexion avec l'API Groq.";
+      const res = await callGroqAPI(prompt);
+      if(res) {
+        box.innerText = "💡 Astuce IA : " + res;
       }
     }
 
-    // Initialisation
+    async function generateCourseWithAI() {
+      const userPrompt = document.getElementById('ai-prompt-input').value.trim();
+      const targetFolder = document.getElementById('import-folder-select').value || 'IA';
+      if(!userPrompt) return alert("Saisis un sujet ou une consigne !");
+
+      document.getElementById('ai-status').style.display = 'block';
+
+      const systemPrompt = `Tu es un assistant de création de cours. Analyse la demande suivante et retourne UNIQUEMENT un tableau JSON valide au format exact suivant, sans texte explicatif ni markdown autour :
+      [
+        {
+          "nom": "Nom commun",
+          "latin": "Nom scientifique",
+          "famille": "Famille",
+          "composition": "Composition",
+          "proprietes": "Propriétés principales"
+        }
+      ]
+      Demande de l'utilisateur : ${userPrompt}`;
+
+      const res = await callGroqAPI(systemPrompt);
+      document.getElementById('ai-status').style.display = 'none';
+
+      if(res) {
+        try {
+          const cleanJson = res.replace(/```json/g, '').replace(/```/g, '').trim();
+          const newItems = JSON.parse(cleanJson);
+          
+          const notionName = "IA - " + userPrompt.substring(0, 20);
+          store.notions[notionName] = newItems;
+          store.coursesMeta[notionName] = { 
+            folder: targetFolder,
+            recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+            verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+          };
+
+          store.currentNotion = notionName;
+          saveStore();
+          alert("Nouveau cours généré avec succès !");
+          switchView('flashcard');
+        } catch(e) {
+          alert("Erreur de formatage de l'IA, réessaie avec une consigne plus simple.");
+        }
+      }
+    }
+
+    function importLocalCSV(event) {
+      const file = event.target.files[0];
+      const targetFolder = document.getElementById('import-folder-select').value || 'Général';
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const newList = parseCustomCSV(e.target.result);
+        const notionName = file.name.replace('.csv', '');
+        store.notions[notionName] = newList;
+        store.coursesMeta[notionName] = { 
+          folder: targetFolder,
+          recto: { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false },
+          verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
+        };
+        store.currentNotion = notionName;
+        saveStore();
+        alert(`Fichier local importé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
+        switchView('flashcard');
+      };
+      reader.readAsText(file);
+    }
+
+    function switchView(view) {
+      document.getElementById('view-flashcard').style.display = view === 'flashcard' ? 'block' : 'none';
+      document.getElementById('view-qcm').style.display = view === 'qcm' ? 'block' : 'none';
+      document.getElementById('view-manager').style.display = view === 'manager' ? 'block' : 'none';
+      document.getElementById('view-config-volets').style.display = view === 'config-volets' ? 'block' : 'none';
+      
+      if(view === 'flashcard') renderFlashcard();
+      if(view === 'manager') {
+        renderCoursesList();
+        renderPreviewTable();
+      }
+      if(view === 'config-volets') {
+        loadConfigCheckboxes();
+      }
+    }
+
     updateSelectOptions();
+    renderCoursesList();
+    renderPreviewTable();
     renderFlashcard();
   </script>
 </body>
