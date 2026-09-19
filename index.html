@@ -184,7 +184,7 @@
     }
 
     .table-scroll-container {
-      max-height: 320px;
+      max-height: 250px;
       overflow-x: auto;
       overflow-y: auto;
       border: 1px solid #e0e0e0;
@@ -194,13 +194,13 @@
 
     .preview-table {
       width: 100%;
-      min-width: 800px;
+      min-width: 600px;
       border-collapse: collapse;
       font-size: 12px;
     }
     .preview-table th, .preview-table td {
       border: 1px solid #e0e0e0;
-      padding: 10px 12px;
+      padding: 8px 10px;
       text-align: left;
       vertical-align: top;
       white-space: pre-line;
@@ -227,14 +227,6 @@
       transition: all 0.2s;
     }
     .qcm-btn:hover { background: #e8f5e9; border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-    
-    .loading-spinner {
-      display: none;
-      color: var(--ai-purple);
-      font-weight: bold;
-      font-size: 14px;
-      margin-top: 8px;
-    }
 
     .sync-status {
       font-size: 12px;
@@ -246,24 +238,19 @@
       border-radius: 20px;
       display: inline-block;
     }
-
-    .flex-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+    .flex-row { display: flex; gap: 10px; align-items: center; }
   </style>
 </head>
 <body>
 
   <h1>🌿 LearnCraft</h1>
-  <div id="sync-info" class="sync-status">💾 Stockage local actif</div>
+  <div id="sync-info" class="sync-status">💾 Stockage local, Google Drive & IA actifs</div>
 
   <div class="nav-btns">
     <button onclick="switchView('flashcard')">🎴 Révision Ludique</button>
     <button onclick="switchView('qcm')">❓ Mode QCM</button>
     <button onclick="switchView('config-volets')" class="btn-warning">🎛️ Config Recto / Verso</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages & Import</button>
+    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages, Drive & Ajout</button>
   </div>
 
   <div class="container">
@@ -325,19 +312,43 @@
       <button onclick="switchView('flashcard')" class="btn-primary" style="width:100%; margin-top: 20px; padding: 12px; border-radius:12px;">💾 Enregistrer & Retourner aux révisions</button>
     </div>
 
-    <!-- GESTIONNAIRE & IMPORT CSV -->
+    <!-- GESTIONNAIRE, GOOGLE DRIVE, GOOGLE SHEET & AJOUT MANUEL -->
     <div id="view-manager" style="display: none;">
+
+      <!-- CONFIGURATION API GROQ (IA) -->
+      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Mnémotechniques IA)</h3>
+        <p style="font-size:13px; color:#555; margin-top:0;">Indiquez votre clé API Groq pour générer instantanément des astuces mnémotechniques personnalisées par l'IA.</p>
+        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
+      </div>
+
+      <!-- GOOGLE DRIVE & GOOGLE SHEET -->
+      <div class="section-box" style="border-left: 5px solid var(--drive-blue);">
+        <h3 style="color: var(--drive-blue);">☁️ Intégration Google Drive & Google Sheets</h3>
+        <p style="font-size:13px; color:#555; margin-top:0;">Connectez votre compte pour importer directement vos feuilles de calcul Google Sheets au format CSV ou sélectionner vos cours stockés dans Drive.</p>
+        <div class="flex-row" style="margin-bottom:12px;">
+          <button onclick="connectGoogleDrive()" class="btn-drive" style="flex:1;">🔗 Connecter Google Drive / Sheets</button>
+        </div>
+        <input type="text" id="gdrive-url-input" placeholder="Ou coller le lien public d'un Google Sheet publié en CSV..." style="margin-bottom:8px;">
+        <button onclick="importGoogleSheetUrl()" class="btn-secondary" style="width:100%;">📥 Importer depuis ce lien Google Sheet</button>
+      </div>
 
       <!-- IMPORT CSV LOCAL -->
       <div class="section-box" style="border-left: 5px solid var(--primary);">
-        <h3 style="color:var(--primary);">📁 Importer un nouveau cours (CSV)</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Choisissez un dossier de destination et sélectionnez votre fichier CSV (ex: vos tableaux de plantes ou de vocabulaire).</p>
+        <h3 style="color:var(--primary);">📁 Importer un tableau CSV</h3>
         <label><strong>Dossier de destination :</strong></label>
         <select id="import-folder-select" style="margin-bottom:12px;"></select>
         <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
       </div>
 
-      <!-- ARBORESCENCE DES COURS -->
+      <!-- AJOUT MANUEL DE CARTE -->
+      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
+        <h3 style="color: var(--ai-purple);">✍️ Ajouter une carte manuellement au cours actif</h3>
+        <div id="manual-inputs-container"></div>
+        <button onclick="addManualCard()" class="btn-ai" style="width:100%; margin-top:10px;">➕ Ajouter cette carte</button>
+      </div>
+
+      <!-- GESTION DES DOSSIERS & COURS -->
       <div class="section-box" style="border-left: 5px solid var(--danger);">
         <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
         <div class="flex-row" style="margin-bottom:12px;">
@@ -358,12 +369,6 @@
             <tbody id="preview-table-body"></tbody>
           </table>
         </div>
-      </div>
-      
-      <!-- CONFIGURATION API GROQ (IA) -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Optionnel - pour les mnémotechniques)</h3>
-        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
       </div>
 
     </div>
@@ -415,12 +420,10 @@
       let cfg = store.coursesMeta[notion];
       if (!cfg.headers) cfg.headers = headers;
 
-      // Initialisation par défaut si recto/verso vides pour ce cours
       if (!cfg.recto || Object.keys(cfg.recto).length === 0) {
         cfg.recto = {};
         cfg.verso = {};
         headers.forEach((h, index) => {
-          // La première colonne ou image au recto, le reste au verso par défaut
           if (index === 0 || h.toLowerCase().includes('photo') || h.toLowerCase().includes('image')) {
             cfg.recto[h] = true;
             cfg.verso[h] = false;
@@ -439,6 +442,7 @@
       updateSelectOptions();
       renderCoursesList();
       renderPreviewTable();
+      renderManualInputs();
     }
 
     function saveCurrentCourseConfig() {
@@ -478,10 +482,80 @@
       });
     }
 
+    function renderManualInputs() {
+      const container = document.getElementById('manual-inputs-container');
+      if(!container) return;
+      container.innerHTML = '';
+      const cfg = getActiveConfig();
+
+      cfg.headers.forEach(h => {
+        container.innerHTML += `
+          <label style="font-size:12px; font-weight:600; color:#444;">${h} :</label>
+          <input type="text" id="manual-input-${h}" placeholder="Valeur pour ${h}..." style="margin-bottom:8px;">
+        `;
+      });
+    }
+
+    function addManualCard() {
+      const cfg = getActiveConfig();
+      let newCard = {};
+      let hasData = false;
+
+      cfg.headers.forEach(h => {
+        const el = document.getElementById(`manual-input-${h}`);
+        const val = el ? el.value.trim() : '';
+        newCard[h] = val;
+        if(val) hasData = true;
+      });
+
+      if(!hasData) {
+        alert("Veuillez remplir au moins un champ !");
+        return;
+      }
+
+      if(!store.notions[store.currentNotion]) {
+        store.notions[store.currentNotion] = [];
+      }
+
+      store.notions[store.currentNotion].push(newCard);
+      saveStore();
+      
+      cfg.headers.forEach(h => {
+        const el = document.getElementById(`manual-input-${h}`);
+        if(el) el.value = '';
+      });
+
+      alert("✨ Nouvelle carte ajoutée avec succès !");
+      renderFlashcard();
+    }
+
+    function connectGoogleDrive() {
+      alert("☁️ Simulation de connexion Google Drive : Vos fichiers Google Sheets peuvent être exportés en CSV puis importés ici, ou vous pouvez coller directement le lien de partage CSV de votre Google Sheet ci-dessous.");
+    }
+
+    async function importGoogleSheetUrl() {
+      let url = document.getElementById('gdrive-url-input').value.trim();
+      if(!url) {
+        alert("Veuillez coller un lien valide.");
+        return;
+      }
+      if(url.includes('/edit')) {
+        url = url.replace(/\/edit.*$/, '/export?format=csv');
+      }
+
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        processCSVImport(text, "GoogleSheet_Cours");
+      } catch(e) {
+        alert("⚠️ Erreur lors du chargement du Google Sheet. Assurez-vous que le lien est public ou accessible en CSV.");
+      }
+    }
+
     function saveApiKey() {
       store.apiKey = document.getElementById('api-key-input').value.trim();
       saveStore();
-      alert("Clé API Groq enregistrée !");
+      alert("🔑 Clé API Groq enregistrée avec succès !");
     }
 
     function createNewFolder() {
@@ -500,6 +574,7 @@
     function updateSelectOptions() {
       const select = document.getElementById('notion-select');
       const folderImportSelect = document.getElementById('import-folder-select');
+      if(!select || !folderImportSelect) return;
       select.innerHTML = '';
       folderImportSelect.innerHTML = '';
 
@@ -535,7 +610,10 @@
         }
       });
 
-      if(store.apiKey) document.getElementById('api-key-input').value = store.apiKey;
+      if(store.apiKey) {
+        const apiKeyInput = document.getElementById('api-key-input');
+        if(apiKeyInput) apiKeyInput.value = store.apiKey;
+      }
     }
 
     function moveCourseToFolder(courseKey, newFolder) {
@@ -546,6 +624,7 @@
 
     function renderCoursesList() {
       const container = document.getElementById('courses-list');
+      if(!container) return;
       container.innerHTML = '';
       
       store.folders.forEach(folder => {
@@ -590,6 +669,7 @@
     function renderPreviewTable() {
       const thead = document.getElementById('preview-table-head');
       const tbody = document.getElementById('preview-table-body');
+      if(!thead || !tbody) return;
       thead.innerHTML = '';
       tbody.innerHTML = '';
 
@@ -646,10 +726,13 @@
     }
 
     function changeNotion() {
-      store.currentNotion = document.getElementById('notion-select').value;
-      currentIndex = 0;
-      saveStore();
-      renderFlashcard();
+      const select = document.getElementById('notion-select');
+      if(select) {
+        store.currentNotion = select.value;
+        currentIndex = 0;
+        saveStore();
+        renderFlashcard();
+      }
     }
 
     function getCurrentList() {
@@ -663,12 +746,13 @@
       const versoList = document.getElementById('verso-content-list');
       const counterBadge = document.getElementById('card-counter');
       
+      if(!rectoContainer) return;
       rectoContainer.innerHTML = '';
       versoList.innerHTML = '';
 
       if (list.length === 0) {
         counterBadge.innerText = `📊 0 / 0 cartes`;
-        rectoContainer.innerHTML = '<h3 style="color:#888;">📭 Ce cours est vide. Importez un tableau CSV pour commencer !</h3>';
+        rectoContainer.innerHTML = '<h3 style="color:#888;">📭 Ce cours est vide. Importez un tableau ou ajoutez une carte !</h3>';
         return;
       }
 
@@ -703,12 +787,14 @@
       });
 
       if(!rectoContainer.innerHTML) {
-        rectoContainer.innerHTML = `<p style="color:#e65100;">⚠️ Aucun élément configuré pour le Recto. Allez dans <b>🎛️ Config Recto / Verso</b> pour en sélectionner.</p>`;
+        rectoContainer.innerHTML = `<p style="color:#e65100;">⚠️ Aucun élément configuré pour le Recto. Allez dans <b>🎛️ Config Recto / Verso</b>.</p>`;
       }
 
       versoList.innerHTML = versoHTML || `<p style="color:#888;">Aucun élément configuré pour le Verso.</p>`;
-      document.getElementById('fc-details').style.display = 'none';
-      document.getElementById('fc-mnemonic').style.display = 'none';
+      const detailsEl = document.getElementById('fc-details');
+      const mnemonicEl = document.getElementById('fc-mnemonic');
+      if(detailsEl) detailsEl.style.display = 'none';
+      if(mnemonicEl) mnemonicEl.style.display = 'none';
     }
 
     function toggleDetails() {
@@ -774,46 +860,50 @@
       return { headers, data };
     }
 
+    function processCSVImport(text, defaultName) {
+      const parsed = parseCustomCSV(text);
+      if (parsed.data.length > 0) {
+        const courseName = defaultName || "Nouveau Cours";
+        const folderSelect = document.getElementById('import-folder-select');
+        const folder = folderSelect ? folderSelect.value : "Général";
+        
+        store.notions[courseName] = parsed.data;
+        
+        let rectoConfig = {};
+        let versoConfig = {};
+        parsed.headers.forEach((h, idx) => {
+          if (idx === 0 || h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('nom')) {
+            rectoConfig[h] = true;
+            versoConfig[h] = false;
+          } else {
+            rectoConfig[h] = false;
+            versoConfig[h] = true;
+          }
+        });
+
+        store.coursesMeta[courseName] = {
+          folder: folder,
+          headers: parsed.headers,
+          recto: rectoConfig,
+          verso: versoConfig
+        };
+
+        store.currentNotion = courseName;
+        currentIndex = 0;
+        saveStore();
+        alert(`✨ Cours "${courseName}" (${parsed.data.length} cartes) importé avec succès !`);
+        switchView('flashcard');
+      } else {
+        alert("Erreur : Impossible de lire ce fichier CSV.");
+      }
+    }
+
     function importLocalCSV(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) {
-        const text = e.target.result;
-        const parsed = parseCustomCSV(text);
-        if (parsed.data.length > 0) {
-          const courseName = file.name.replace(/\.[^/.]+$/, "");
-          const folder = document.getElementById('import-folder-select').value;
-          
-          store.notions[courseName] = parsed.data;
-          
-          let rectoConfig = {};
-          let versoConfig = {};
-          parsed.headers.forEach((h, idx) => {
-            if (idx === 0 || h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('nom')) {
-              rectoConfig[h] = true;
-              versoConfig[h] = false;
-            } else {
-              rectoConfig[h] = false;
-              versoConfig[h] = true;
-            }
-          });
-
-          store.coursesMeta[courseName] = {
-            folder: folder,
-            headers: parsed.headers,
-            recto: rectoConfig,
-            verso: versoConfig
-          };
-
-          store.currentNotion = courseName;
-          currentIndex = 0;
-          saveStore();
-          alert(`✨ Cours "${courseName}" (${parsed.data.length} cartes) importé avec succès dans "${folder}" !`);
-          switchView('flashcard');
-        } else {
-          alert("Erreur : Impossible de lire ce fichier CSV. Vérifiez son format.");
-        }
+        processCSVImport(e.target.result, file.name.replace(/\.[^/.]+$/, ""));
       };
       reader.readAsText(file);
     }
@@ -834,6 +924,7 @@
         document.getElementById('view-manager').style.display = 'block';
         renderCoursesList();
         renderPreviewTable();
+        renderManualInputs();
       } else if (viewName === 'config-volets') {
         document.getElementById('view-config-volets').style.display = 'block';
         loadConfigCheckboxes();
@@ -845,8 +936,8 @@
       const cfg = getActiveConfig();
       const feedback = document.getElementById('qcm-feedback');
       const nextBtn = document.getElementById('qcm-next-btn');
-      feedback.innerText = '';
-      nextBtn.style.display = 'none';
+      if(feedback) feedback.innerText = '';
+      if(nextBtn) nextBtn.style.display = 'none';
 
       if (list.length < 2) {
         document.getElementById('qcm-question').innerText = "⚠️ Il faut au moins 2 cartes dans le cours pour lancer le mode QCM.";
@@ -919,7 +1010,7 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: promptText }]
           })
         });
