@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Volets 100% Dynamiques par Cours & GPT OSS 120B</title>
+  <title>LearnCraft TDAH - Volets Dynamiques par Cours & GPT OSS 120B</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -237,6 +237,7 @@
     <!-- FLASHCARD VIEW -->
     <div id="view-flashcard" class="card">
       <div id="recto-container">
+        <img id="fc-img" class="plant-img" src="" alt="Visuel" style="display:none;" onerror="this.style.display='none'">
         <div id="fc-recto-dynamic"></div>
       </div>
       
@@ -266,7 +267,7 @@
     <!-- CONFIGURATION RECTO / VERSO DYNAMIQUE PAR COURS -->
     <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
       <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Les volets ci-dessous s'adaptent dynamiquement aux colonnes de ce cours spécifique.</p>
+      <p style="font-size:13px; color:#555;">Cochez les colonnes de votre tableau à afficher au Recto et au Verso pour ce cours spécifique.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
@@ -381,40 +382,40 @@
     let accessToken = null;
     let driveFileId = null;
 
-    function getActiveHeaders() {
-      const notion = store.currentNotion;
-      const list = store.notions[notion] || [];
-      
-      // Si les en-têtes existent dans metadata, on les utilise
-      if (store.coursesMeta[notion] && store.coursesMeta[notion].headers && store.coursesMeta[notion].headers.length > 0) {
-        return store.coursesMeta[notion].headers;
-      }
-      
-      // Sinon, on les extrait directement des clés du premier élément du cours
-      if (list.length > 0) {
-        const keys = Object.keys(list[0]);
-        if(!store.coursesMeta[notion]) store.coursesMeta[notion] = {};
-        store.coursesMeta[notion].headers = keys;
-        return keys;
-      }
-      
-      return ["Nom", "Description"];
-    }
-
     function getActiveConfig() {
       const notion = store.currentNotion;
-      const headers = getActiveHeaders();
+      const currentList = store.notions[notion] || [];
+      
+      // Déduit dynamiquement les en-têtes des clés du premier objet du tableau s'ils n'existent pas
+      let headers = [];
+      if (store.coursesMeta[notion] && store.coursesMeta[notion].headers) {
+        headers = store.coursesMeta[notion].headers;
+      } else if (currentList.length > 0) {
+        headers = Object.keys(currentList[0]);
+      } else {
+        headers = ["Nom", "Description"];
+      }
 
       if (!store.coursesMeta[notion]) {
         store.coursesMeta[notion] = { folder: "Général", headers: headers, recto: {}, verso: {} };
       }
       
+      if (!store.coursesMeta[notion].headers) {
+        store.coursesMeta[notion].headers = headers;
+      }
+
+      // Initialise par défaut la moitié au recto, le reste au verso si vide
       if (!store.coursesMeta[notion].recto || Object.keys(store.coursesMeta[notion].recto).length === 0) {
         store.coursesMeta[notion].recto = {};
         store.coursesMeta[notion].verso = {};
         headers.forEach((h, index) => {
-          store.coursesMeta[notion].recto[h] = index < Math.ceil(headers.length / 2);
-          store.coursesMeta[notion].verso[h] = index >= Math.ceil(headers.length / 2);
+          if (index < Math.ceil(headers.length / 2)) {
+            store.coursesMeta[notion].recto[h] = true;
+            store.coursesMeta[notion].verso[h] = false;
+          } else {
+            store.coursesMeta[notion].recto[h] = false;
+            store.coursesMeta[notion].verso[h] = true;
+          }
         });
       }
 
@@ -470,8 +471,8 @@
       cfg.verso = {};
 
       cfg.headers.forEach(h => {
-        const rectoEl = document.getElementById(`chk-recto-${CSS.escape(h)}`);
-        const versoEl = document.getElementById(`chk-verso-${CSS.escape(h)}`);
+        const rectoEl = document.getElementById(`chk-recto-${h}`);
+        const versoEl = document.getElementById(`chk-verso-${h}`);
         if(rectoEl) cfg.recto[h] = rectoEl.checked;
         if(versoEl) cfg.verso[h] = versoEl.checked;
       });
@@ -629,24 +630,25 @@
       thead.innerHTML = '';
       tbody.innerHTML = '';
 
-      const headers = getActiveHeaders();
+      const cfg = getActiveConfig();
       const list = getCurrentList();
 
+      // Construit les en-têtes du tableau de prévisualisation
       let headHtml = '';
-      headers.forEach(h => {
+      cfg.headers.forEach(h => {
         headHtml += `<th>${h}</th>`;
       });
       headHtml += `<th>Action</th>`;
       thead.innerHTML = headHtml;
 
       if(list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${headers.length + 1}" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${cfg.headers.length + 1}" style="text-align:center; color:#888;">Aucune carte dans ce cours</td></tr>`;
         return;
       }
 
       list.forEach((item, idx) => {
         let trHtml = '';
-        headers.forEach(h => {
+        cfg.headers.forEach(h => {
           let val = item[h] !== undefined ? item[h] : '-';
           trHtml += `<td>${val}</td>`;
         });
@@ -686,7 +688,6 @@
       currentIndex = 0;
       saveStore();
       renderFlashcard();
-      // Met à jour instantanément les cases à cocher si l'écran de configuration des volets est ouvert
       if(document.getElementById('view-config-volets').style.display === 'block') {
         loadConfigCheckboxes();
       }
@@ -711,13 +712,15 @@
       }
 
       const p = list[currentIndex];
+      let rectoHTML = '';
       let versoHTML = '';
 
       cfg.headers.forEach(h => {
         let val = p[h] || '';
         if(!val) return;
 
-        if (h.toLowerCase().includes('image') || h.toLowerCase().includes('photo') || (typeof val === 'string' && val.startsWith('http'))) {
+        // Détecte si la colonne contient une image (URL d'image)
+        if (h.toLowerCase().includes('image') || h.toLowerCase().includes('photo') || val.startsWith('http')) {
           if (cfg.recto[h]) {
             rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
           }
@@ -865,7 +868,7 @@
     let qcmCurrentCard = null;
     function renderQCM() {
       const list = getCurrentList();
-      const headers = getActiveHeaders();
+      const cfg = getActiveConfig();
       const feedback = document.getElementById('qcm-feedback');
       const nextBtn = document.getElementById('qcm-next-btn');
       feedback.innerText = '';
@@ -878,8 +881,8 @@
       }
 
       qcmCurrentCard = list[Math.floor(Math.random() * list.length)];
-      const primaryHeader = headers[0] || 'Nom';
-      const secondaryHeader = headers[1] || primaryHeader;
+      const primaryHeader = cfg.headers[0] || 'Nom';
+      const secondaryHeader = cfg.headers[1] || primaryHeader;
 
       document.getElementById('qcm-question').innerText = `Quelle carte correspond à :\n"${qcmCurrentCard[secondaryHeader] || qcmCurrentCard[primaryHeader]}" ?`;
 
@@ -954,14 +957,14 @@
 
     async function generateMnemonic() {
       const list = getCurrentList();
-      const headers = getActiveHeaders();
+      const cfg = getActiveConfig();
       if(list.length === 0) return;
       const p = list[currentIndex];
       const box = document.getElementById('fc-mnemonic');
       box.style.display = 'block';
       box.innerText = "⚡ L'IA réfléchit à une astuce...";
 
-      const firstKey = headers[0] || 'Nom';
+      const firstKey = cfg.headers[0] || 'Nom';
       const prompt = `Propose un moyen mnémotechnique court, amusant et mémorable (adapté au TDAH) pour retenir l'élément '${p[firstKey]}'. Maximum 2 phrases.`;
       const res = await callGroqAPI(prompt);
       if(res) {
