@@ -717,15 +717,15 @@
       }
     }
 
-    // --- FONCTION API GEMINI UTILISANT LES NOMS DE MODÈLES ACTIFS ---
+    // --- SYSTÈME DE SECOURS AUTOMATIQUE (FALLBACK) POUR L'IA ---
     async function callGeminiAPI(promptText) {
       if(!store.apiKey) {
         alert("Pense à configurer ta clé API Gemini dans l'onglet Réglages !");
         return null;
       }
 
-      // Modèles actuels actifs préconisés par Google AI
-      const models = ['gemini-flash-latest', 'gemini-3.8-flash'];
+      // Liste de plusieurs modèles de secours testés successivement en cas de surcharge (High Demand)
+      const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
       
       for (let model of models) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${store.apiKey}`;
@@ -742,23 +742,19 @@
           const data = await response.json();
 
           if (data.error) {
-            console.warn(`Erreur sur le modèle ${model}:`, data.error.message);
-            if (model === models[models.length - 1]) {
-              alert(`Erreur API Google Gemini : ${data.error.message}`);
-              return null;
-            }
-            continue;
+            console.warn(`Modèle ${model} indisponible ou surchargé (${data.error.message}), essai suivant...`);
+            continue; // Passe au modèle suivant de la liste
           }
 
           if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
             return data.candidates[0].content.parts[0].text;
           }
         } catch (err) {
-          console.error(`Erreur réseau avec ${model}:`, err);
+          console.error(`Erreur réseau avec le modèle ${model}:`, err);
         }
       }
 
-      alert("Impossible de contacter l'IA Google Gemini. Vérifie ta clé API.");
+      alert("Tous les modèles Gemini sont actuellement surchargés ou indisponibles. Réessaie dans quelques instants !");
       return null;
     }
 
