@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Recto/Verso par Cours & Groq AI</title>
+  <title>LearnCraft TDAH - Recto/Verso par Cours & GPT OSS 120B</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
@@ -264,7 +264,7 @@
     <!-- QCM VIEW -->
     <div id="view-qcm" class="card" style="display: none;">
       <span id="qcm-badge" class="badge">Question QCM</span>
-      <h3 id="qcm-question">Quel est le nom scientifique / propriétés ?</h3>
+      <h3 id="qcm-question">Quel est le nom / propriétés ?</h3>
       <img id="qcm-img" class="plant-img" src="" alt="QCM" onerror="this.src='https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80'">
       <div id="qcm-options" class="qcm-options"></div>
       <div id="qcm-feedback" style="margin-top: 15px; font-weight: bold;"></div>
@@ -274,7 +274,7 @@
     <!-- CONFIGURATION RECTO / VERSO PAR COURS -->
     <div id="view-config-volets" class="section-box" style="display: none; border-left: 4px solid var(--warning);">
       <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Choisis précisément ce qui apparaît au <strong>Recto</strong> et au <strong>Verso</strong> pour ce cours spécifique.</p>
+      <p style="font-size:13px; color:#555;">Les volets s'adaptent dynamiquement au cours sélectionné.</p>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
         <div style="background: #fafafa; padding: 10px; border-radius: 8px; border:1px solid #ddd;">
@@ -338,7 +338,6 @@
       <!-- GESTION ET ARBORESCENCE DES DOSSIERS -->
       <div class="section-box" style="border-left: 4px solid var(--danger);">
         <h3 style="color: var(--danger);">📂 Arborescence des Dossiers & Cours</h3>
-        <p style="font-size:12px; color:#666;">Organisez vos 100+ fichiers par dossiers pour garder une interface claire.</p>
         <div class="flex-row" style="margin-bottom:12px;">
           <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier..." style="margin:0;">
           <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap;">➕ Créer dossier</button>
@@ -358,18 +357,22 @@
         
         <label style="margin-top: 10px; display:block;"><strong>ID du fichier Google Sheet :</strong></label>
         <input type="text" id="sheet-id-input" placeholder="Ex: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" onchange="saveSheetId()">
+
+        <label style="margin-top: 10px; display:block;"><strong>Nom personnalisé du cours (Optionnel) :</strong></label>
+        <input type="text" id="sheet-custom-name" placeholder="Laisser vide pour utiliser le nom du fichier">
+
         <button onclick="importGoogleSheet()" class="btn-secondary" style="width:100%;">📊 2. Charger ce Google Sheet dans l'appli</button>
       </div>
       
       <!-- CONFIGURATION API GROQ (IA) -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (IA ultra-rapide)</h3>
+        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Modèle openai/gpt-oss-120b)</h3>
         <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
       </div>
 
       <!-- ASSISTANT IA CRÉATION AUTOMATIQUE -->
       <div class="section-box" style="border-left: 4px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA (Groq)</h3>
+        <h3 style="color: var(--ai-purple);">✨ Générer un cours avec l'IA</h3>
         <textarea id="ai-prompt-input" rows="3" placeholder="Exemple : Crée 5 fiches sur les plantes médicinales..."></textarea>
         <button onclick="generateCourseWithAI()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
         <div id="ai-status" class="loading-spinner">⏳ L'IA analyse et crée les fiches...</div>
@@ -422,12 +425,6 @@
           verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
         };
       }
-      if (!store.coursesMeta[notion].recto) {
-        store.coursesMeta[notion].recto = { img: true, family: true, name: true, latin: true, prop: false, otherProp: false, comp: false, risks: false };
-      }
-      if (!store.coursesMeta[notion].verso) {
-        store.coursesMeta[notion].verso = { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true };
-      }
       return store.coursesMeta[notion];
     }
 
@@ -441,7 +438,6 @@
       }
     }
 
-    // Synchronisation Drive sécurisée (évite toute erreur si non connecté)
     async function syncToDrive() {
       if(!accessToken) return;
       try {
@@ -698,6 +694,9 @@
       currentIndex = 0;
       saveStore();
       renderFlashcard();
+      if(document.getElementById('view-config-volets').style.display === 'block') {
+        loadConfigCheckboxes();
+      }
     }
 
     function getCurrentList() {
@@ -973,7 +972,7 @@
       box.style.display = 'block';
       box.innerText = "⚡ L'IA réfléchit à une astuce...";
 
-      const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de la plante '${p.nom}'. Maximum 2 phrases.`;
+      const prompt = `Propose un moyen mnémotechnique très court, amusant et mémorable (adapté au TDAH) pour retenir le nom latin '${p.latin}' ou les propriétés de '${p.nom}'. Maximum 2 phrases.`;
       const res = await callGroqAPI(prompt);
       if(res) {
         box.innerText = "💡 Astuce IA : " + res;
@@ -1042,6 +1041,7 @@
 
     async function importGoogleSheet() {
       const sheetId = store.sheetId || document.getElementById('sheet-id-input').value.trim();
+      const customNameInput = document.getElementById('sheet-custom-name').value.trim();
       const targetFolder = document.getElementById('import-folder-select').value || 'Général';
       if(!sheetId) return alert("Saisis l'ID de ton Google Sheet !");
       if(!accessToken) return alert("Clique d'abord sur '1. Connecter mon Google Drive' !");
@@ -1055,7 +1055,7 @@
         const newList = parseCustomCSV(csvText);
 
         if(newList.length > 0) {
-          const notionName = "Sheet - " + new Date().toLocaleTimeString();
+          let notionName = customNameInput !== "" ? customNameInput : ("Sheet - " + new Date().toLocaleTimeString());
           store.notions[notionName] = newList;
           store.coursesMeta[notionName] = { 
             folder: targetFolder,
@@ -1063,8 +1063,9 @@
             verso: { img: false, family: false, name: false, latin: false, prop: true, otherProp: true, comp: true, risks: true }
           };
           store.currentNotion = notionName;
+          document.getElementById('sheet-custom-name').value = '';
           saveStore();
-          alert(`Google Sheet chargé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
+          alert(`Google Sheet "${notionName}" chargé (${newList.length} fiches) dans le dossier '${targetFolder}' !`);
           switchView('flashcard');
         } else {
           alert("Impossible de lire les données du fichier Google Sheet.");
