@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft - Révisions Ludiques & Sur-Mesure</title>
+  <title>LearnCraft TDAH - Révisions & Images Dynamiques</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --primary: #2e7d32;
@@ -760,17 +761,18 @@
       counterBadge.innerText = `📊 Carte ${currentIndex + 1} / ${list.length}`;
 
       const p = list[currentIndex];
-      let rectoHTML = '';
       let versoHTML = '';
 
       cfg.headers.forEach(h => {
         let val = p[h] || '';
         if(!val) return;
 
-        const isImageCol = h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || val.startsWith('http://') || val.startsWith('https://');
+        // Correction universelle de détection d'image (URL http/https ou nom de colonne explicite)
+        const isImage = (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) && 
+                        (h.toLowerCase().includes('photo') || h.toLowerCase().includes('image') || h.toLowerCase().includes('url') || h.toLowerCase().includes('visuel') || h.toLowerCase().includes('illustration') || val.match(/\.(jpeg|jpg|gif|png|webp)$/i) || val.includes('unsplash') || val.includes('drive.google') || val.includes('imgur'));
 
         if (cfg.recto && cfg.recto[h]) {
-          if (isImageCol) {
+          if (isImage) {
             rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
           } else {
             rectoContainer.innerHTML += `<div style="margin: 10px 0; font-size: 18px; font-weight: 600; color: var(--primary);">📌 ${h} : ${val}</div>`;
@@ -778,8 +780,8 @@
         }
 
         if (cfg.verso && cfg.verso[h]) {
-          if (isImageCol) {
-            versoHTML += `<p><strong>📷 ${h} :</strong><br><img src="${val}" class="plant-img" style="max-height:180px; margin-top:8px;"></p>`;
+          if (isImage) {
+            versoHTML += `<p><strong>📷 ${h} :</strong><br><img src="${val}" class="plant-img" style="max-height:180px; margin-top:8px;" onerror="this.style.display='none'"></p>`;
           } else {
             versoHTML += `<p><strong>💡 ${h} :</strong> ${val}</p>`;
           }
