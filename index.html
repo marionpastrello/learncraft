@@ -1,9 +1,33 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  =====================================================================
+  🌿 LearnCraft TDAH — appli de révision ludique (un seul fichier)
+  =====================================================================
+  Comment s'y retrouver :
+    1. <style>   → l'apparence (couleurs, tailles, boutons)
+    2. <body>    → les 4 écrans : Réviser, QCM, Cours, IA + la barre du bas
+    3. <script>  → le fonctionnement, découpé en sections numérotées :
+         1. Données & sauvegarde      6. Import Google Sheet (lien public)
+         2. Petits outils             7. Google privé (connexion + choix)
+         3. Navigation entre onglets  8. Dossiers, cours, cartes
+         4. Révision (cartes)         9. IA Groq (fiches, astuces, chat)
+         5. QCM                      10. Démarrage
+  Tout est enregistré dans le navigateur (localStorage).
+  ⚠️ Pour Google privé : le fichier doit être ouvert en http(s) (ex : GitHub Pages),
+     pas en double-cliquant dessus (file://).
+  =====================================================================
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LearnCraft TDAH</title>
+<!-- Bibliothèques Google : connexion (gsi) + sélecteur de fichiers (api.js) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
+
 <style>
+/* ---------- 1. Couleurs principales (modifie-les ici) ---------- */
 :root{--p:#2e7d32;--pl:#e8f5e9;--ai:#7b1fa2;--dr:#1565c0;--w:#f57c00;--d:#d32f2f;--bg:#f4f6f8;--t:#333;--b:#e0e0e0}
 *{box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t);margin:0;padding:12px 12px 90px;display:flex;flex-direction:column;align-items:center}
@@ -11,208 +35,623 @@ main{width:100%;max-width:720px}
 h1{color:var(--p);margin:4px 0;font-size:26px;text-align:center}
 h3{margin:0 0 10px;font-size:17px}
 p{line-height:1.5;margin:0 0 10px}.mu{color:#888;font-size:13px}
+
+/* ---------- Boutons ---------- */
 button{background:var(--p);color:#fff;border:0;padding:11px 16px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 5px #0002;transition:transform .1s}
 button:hover{filter:brightness(.92)}button:active{transform:scale(.96)}
+button:disabled{opacity:.5;cursor:wait}
 button.ai{background:var(--ai)}button.dr{background:var(--dr)}button.w{background:var(--w)}button.d{background:var(--d)}button.g{background:#78909c}
 button.big{width:100%;padding:15px;font-size:16px;border-radius:14px}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #1565c055}
+
+/* ---------- Cadres et carte ---------- */
 .box,.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--b)}
 .card{text-align:center;min-height:200px;padding:22px;box-shadow:0 8px 25px #0001}
 .fl{animation:fl .4s}@keyframes fl{50%{transform:rotateY(90deg)}}
-input[type=text],input[type=password],select,textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid #ccc;border-radius:8px;font:inherit;font-size:14px;background:#fff}
+
+/* ---------- Champs de saisie ---------- */
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid #ccc;border-radius:8px;font:inherit;font-size:14px;background:#fff}
 .row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
 .im{max-width:100%;max-height:280px;object-fit:contain;border-radius:12px;margin:8px 0}
 .ln{margin:8px 0;font-size:17px;white-space:pre-line;text-align:left}.ln b{display:block;font-size:12px;color:var(--p)}
 #face.rc .ln{font-size:22px;font-weight:600;text-align:center}
+
+/* ---------- Barre de progression, stats, astuce ---------- */
 .bar{height:10px;background:#dde3e8;border-radius:6px;margin-bottom:12px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#81c784,#2e7d32);transition:width .4s}
 .stats{text-align:center;margin:4px 0 10px;font-weight:700;color:var(--w);font-size:14px}
 .mn{background:#f3e5f5;border-left:4px solid var(--ai);padding:12px;border-radius:8px;margin-top:10px;text-align:left;display:none;white-space:pre-line;color:#4a148c;font-size:14px}
+
+/* ---------- QCM ---------- */
 .opt{display:block;width:100%;text-align:left;background:#f8f9fa;color:var(--t);border:1px solid #ccd0d5;margin-top:10px;font-weight:500;font-size:15px;box-shadow:none}
 .opt.ok{background:#c8e6c9;border-color:var(--p)}.opt.ko{background:#ffcdd2;border-color:var(--d)}
+
+/* ---------- Écran Cours ---------- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .grid2 label{display:block;background:#fafafa;padding:8px;border-radius:8px;margin-top:6px;font-size:13px}
 .ci{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid var(--b);border-radius:8px;margin-top:6px;font-size:13px}
 .ci select{width:auto;margin:0;padding:4px}.ci button{padding:5px 9px;font-size:12px}
 .ts{max-height:260px;overflow:auto;border:1px solid var(--b);border-radius:8px}
 table{border-collapse:collapse;min-width:520px;width:100%;font-size:12px}th,td{border:1px solid var(--b);padding:6px;text-align:left;vertical-align:top;white-space:pre-line}th{background:#f5f5f5;position:sticky;top:0}
+
+/* ---------- Chat IA ---------- */
 .chat{background:#fafafa;border:1px solid var(--b);border-radius:12px;padding:10px;max-height:240px;overflow:auto;margin-bottom:10px;font-size:14px}.chat div{margin:6px 0;white-space:pre-wrap}
+
+/* ---------- Barre du bas ---------- */
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:center;gap:4px;padding:8px;border-top:1px solid var(--b);z-index:5}
-nav button{background:none;color:#666;box-shadow:none;flex:1;max-width:170px;flex-direction:column;font-size:12px;padding:8px}
+nav button{background:none;color:#666;box-shadow:none;flex:1;max-width:170px;font-size:12px;padding:8px}
 nav button.on{background:var(--pl);color:var(--p)}
+
+/* ---------- Message flottant + confettis ---------- */
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9;max-width:90%;text-align:center}
 #cf{position:fixed;inset:0;pointer-events:none;z-index:8}
+.hide{display:none!important}
 @media(max-width:520px){.grid2{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.fl{animation:none}}
-</style></head><body>
-<canvas id="cf"></canvas><div id="toast"></div>
+</style>
+</head>
+
+<body>
 <main>
-<h1>🌿 LearnCraft</h1>
-<div class="stats" id="stats"></div>
-<div class="box row" style="padding:10px"><select id="sel" onchange="changeCourse()" style="margin:0;flex:3" aria-label="Cours actif"></select><span id="cnt" class="mu" style="text-align:center"></span></div>
+  <h1>🌿 LearnCraft</h1>
+  <div class="stats" id="stats"></div>
+  <!-- Choix du cours actif (utilisé par tous les onglets) -->
+  <select id="courseSel" onchange="setActive(this.value)" aria-label="Cours actif"></select>
 
-<section id="v-study"><div class="bar"><i id="prog"></i></div>
- <div class="card" id="card"><div id="face"></div></div>
- <div id="ctl">
-  <button id="bflip" class="w big" onclick="flip()">👀 Retourner la carte</button>
-  <div id="rate" class="row" style="display:none"><button class="d big" onclick="rate(0)">❌ À revoir</button><button class="big" onclick="rate(1)">✅ Je savais</button></div>
-  <div id="mnw" style="display:none;margin-top:10px"><button class="ai" style="width:100%" onclick="mnemo()">💡 Moyen mnémotechnique IA</button><div id="mn" class="mn"></div></div>
- </div></section>
+  <!-- ================= ÉCRAN 1 : RÉVISER ================= -->
+  <section id="tab-rev">
+    <div class="bar"><i id="revBar"></i></div>
+    <div class="card" id="face"></div>
+    <button class="big" id="btnFlip" onclick="flipCard()">👀 Retourner la carte</button>
+    <div class="row hide" id="answerBtns">
+      <button class="d big" onclick="answerCard(false)">❌ À revoir</button>
+      <button class="big" onclick="answerCard(true)">✅ Je savais</button>
+    </div>
+    <p></p>
+    <button class="ai big" id="btnMn" onclick="mnemonic()">💡 Moyen mnémotechnique IA</button>
+    <div class="mn" id="mn"></div>
+  </section>
 
-<section id="v-qcm" style="display:none"><div class="card"><div id="qhead" class="mu"></div><div id="qface" class="rc"></div><h3 id="qask" style="color:var(--p)"></h3><div id="qopts"></div><div id="qfb" style="font-weight:700;margin-top:12px"></div><button id="qnext" class="big" style="display:none;margin-top:10px" onclick="qcmNext()">Question suivante ➡️</button></div></section>
+  <!-- ================= ÉCRAN 2 : QCM ================= -->
+  <section id="tab-qcm" class="hide">
+    <div class="card" id="qcmBox"></div>
+    <button class="big hide" id="btnNext" onclick="newQuestion()">Question suivante ➡️</button>
+  </section>
 
-<section id="v-courses" style="display:none">
- <div class="box" id="cfgwrap" style="border-left:5px solid var(--w)"><h3 style="color:var(--w)">🎛️ Recto / Verso : <span id="cfg-title"></span></h3>
-  <p class="mu">Choisis ce qui s'affiche sur chaque face (utilisé aussi par le QCM : question = recto, réponse = 1er champ texte du verso).</p>
-  <div class="grid2"><div><b>📤 Recto</b><div id="cfg-recto"></div></div><div><b>📥 Verso</b><div id="cfg-verso"></div></div></div></div>
+  <!-- ================= ÉCRAN 3 : COURS ================= -->
+  <section id="tab-cours" class="hide">
 
- <div class="box" style="border-left:5px solid var(--p)"><h3 style="color:var(--p)">📁 Importer un tableau</h3>
-  <label>Dossier de destination</label><select id="imp-folder"></select>
-  <input type="file" id="csvf" accept=".csv,.tsv,.txt" onchange="importFile(event)">
-  <label>Lien d'un Google Sheet public</label><input type="text" id="gurl" placeholder="https://docs.google.com/spreadsheets/d/...">
-  <button class="dr" style="width:100%" onclick="importUrl()">📥 Importer depuis le lien</button></div>
+    <div class="box">
+      <h3>🎛️ Recto / Verso : <span id="rvName"></span></h3>
+      <p class="mu">Choisis ce qui s'affiche sur chaque face (utilisé aussi par le QCM : question = recto, réponse = 1er champ texte du verso).</p>
+      <div class="grid2">
+        <div><b>📤 Recto</b><div id="rvFront"></div></div>
+        <div><b>📥 Verso</b><div id="rvBack"></div></div>
+      </div>
+    </div>
 
- <div class="box" style="border-left:5px solid var(--dr)"><h3 style="color:var(--dr)">☁️ Google Drive (privé)</h3>
-  <p class="mu">Il faut un Client ID OAuth (type « Application Web ») et une clé API Google Cloud. Le fichier doit être servi en http(s) (pas file://), et son adresse ajoutée aux « origines JavaScript autorisées ».</p>
-  <input type="text" id="gid" placeholder="Client ID (xxx.apps.googleusercontent.com)"><input type="text" id="gkey" placeholder="Clé API Google (pour le Picker)">
-  <button class="dr" style="width:100%" onclick="gAuth()">👤 Se connecter à Google</button>
-  <button id="gpick" class="g" style="width:100%;margin-top:8px;display:none" onclick="gPick()">📂 Choisir un Google Sheet</button></div>
+    <div class="box">
+      <h3>📁 Importer un tableau</h3>
+      <label>Dossier de destination</label>
+      <select id="destFolder"></select>
+      <label>Lien d'un Google Sheet public</label>
+      <input type="text" id="sheetLink" placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button onclick="importPublicSheet()">📥 Importer depuis le lien</button>
+    </div>
 
- <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">✍️ Ajouter une carte au cours actif</h3><div id="man"></div><button class="ai" style="width:100%" onclick="addCard()">➕ Ajouter</button></div>
+    <div class="box">
+      <h3>☁️ Google Drive (privé)</h3>
+      <p class="mu">Il faut un Client ID OAuth (type « Application Web ») et une clé API Google Cloud. Le fichier doit être servi en http(s) (pas file://), et son adresse ajoutée aux « origines JavaScript autorisées ».</p>
+      <input type="text" id="gClientId" placeholder="Client ID (....apps.googleusercontent.com)">
+      <input type="password" id="gApiKey" placeholder="Clé API (AIza...)">
+      <div class="row">
+        <button class="dr" onclick="googleLogin()">👤 Se connecter à Google</button>
+        <button class="dr" onclick="pickSheet()">📂 Choisir un Google Sheet</button>
+      </div>
+      <p class="mu" id="gStatus">Non connecté.</p>
+      <label>…ou colle le lien d'un de tes Sheets privés (après connexion)</label>
+      <div class="row">
+        <input type="text" id="privLink" placeholder="https://docs.google.com/spreadsheets/d/...">
+        <button class="dr" style="flex:0 0 auto" onclick="importPrivateLink()">📥</button>
+      </div>
+      <!-- Crée un DOSSIER : chaque onglet du Sheet devient un cours -->
+      <button class="dr big" onclick="importFolderFromLink()">📁 Créer un dossier depuis ce lien (1 cours par onglet)</button>
+    </div>
 
- <div class="box" style="border-left:5px solid var(--d)"><h3 style="color:var(--d)">📂 Dossiers & cours</h3>
-  <div class="row"><input type="text" id="nf" placeholder="Nom du nouveau dossier" style="margin:0"><button onclick="newFolder()" style="flex:0 0 auto">➕ Créer</button></div>
-  <div id="clist"></div></div>
+    <div class="box">
+      <h3>✍️ Ajouter une carte au cours actif</h3>
+      <input type="text" id="addFront" placeholder="Recto">
+      <input type="text" id="addBack" placeholder="Verso">
+      <button onclick="addCard()">➕ Ajouter</button>
+    </div>
 
- <div class="box"><h3>📋 Aperçu du cours actif</h3><div class="ts"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
- <div class="box"><label><input type="checkbox" id="snd" onchange="st.cfg.sound=this.checked;save()"> 🔊 Sons de récompense</label></div>
-</section>
+    <div class="box">
+      <h3>📂 Dossiers & cours</h3>
+      <div class="row">
+        <input type="text" id="newFolder" placeholder="Nouveau dossier">
+        <button style="flex:0 0 auto" onclick="createFolder()">➕ Créer</button>
+      </div>
+      <div class="row">
+        <input type="text" id="newCourse" placeholder="Nouveau cours (dans le dossier de destination)">
+        <button style="flex:0 0 auto" onclick="createCourse()">➕ Créer</button>
+      </div>
+      <div id="courseList"></div>
+    </div>
 
-<section id="v-ai" style="display:none">
- <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">🔑 Clé API Groq</h3><p class="mu">Clé gratuite (gsk_...), stockée uniquement dans ce navigateur.</p><input type="password" id="gk" placeholder="gsk_..." onchange="st.cfg.key=this.value.trim();save();toast('🔑 Clé enregistrée')"></div>
- <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">✨ Générer un cours</h3><textarea id="aip" rows="4" placeholder="Ex : 8 fiches sur le système cardiovasculaire (nom, fonction, anatomie)…"></textarea><button class="ai" style="width:100%" onclick="aiCourse()">🤖 Générer les fiches</button></div>
- <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">💬 Question sur le cours actif</h3><div id="chat" class="chat"><div>🤖 Pose-moi une question sur tes fiches !</div></div><div class="row"><input type="text" id="ci" placeholder="Ta question…" style="margin:0" onkeydown="if(event.key==='Enter')chat()"><button class="ai" style="flex:0 0 auto" onclick="chat()">Envoyer</button></div></div>
-</section>
+    <div class="box">
+      <h3>📋 Aperçu du cours actif</h3>
+      <div class="ts" id="preview"></div>
+    </div>
+
+    <div class="box">
+      <label><input type="checkbox" id="soundOn" onchange="toggleSound(this.checked)"> 🔊 Sons de récompense</label>
+    </div>
+  </section>
+
+  <!-- ================= ÉCRAN 4 : IA ================= -->
+  <section id="tab-ia" class="hide">
+    <div class="box">
+      <h3>🔑 Clé API Groq</h3>
+      <p class="mu">Clé gratuite (gsk_...), stockée uniquement dans ce navigateur.</p>
+      <input type="password" id="groqKey" placeholder="gsk_..." onchange="saveGroqKey(this.value)">
+    </div>
+    <div class="box">
+      <h3>✨ Générer un cours</h3>
+      <input type="text" id="genTopic" placeholder="Sujet (ex : la Révolution française)">
+      <input type="number" id="genCount" value="10" min="3" max="40">
+      <button class="ai big" id="btnGen" onclick="generateCourse()">🤖 Générer les fiches</button>
+    </div>
+    <div class="box">
+      <h3>💬 Question sur le cours actif</h3>
+      <div class="chat" id="chat"><div>🤖 Pose-moi une question sur tes fiches !</div></div>
+      <div class="row">
+        <input type="text" id="chatInput" placeholder="Ta question…" onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="ai" style="flex:0 0 auto" onclick="sendChat()">Envoyer</button>
+      </div>
+    </div>
+  </section>
 </main>
-<nav><button id="n-study" onclick="show('study')">🎴<span>Réviser</span></button><button id="n-qcm" onclick="show('qcm')">❓<span>QCM</span></button><button id="n-courses" onclick="show('courses')">📚<span>Cours</span></button><button id="n-ai" onclick="show('ai')">🤖<span>IA</span></button></nav>
+
+<!-- Barre de navigation du bas -->
+<nav>
+  <button data-tab="rev" class="on" onclick="showTab('rev')">🎴<br>Réviser</button>
+  <button data-tab="qcm" onclick="showTab('qcm')">❓<br>QCM</button>
+  <button data-tab="cours" onclick="showTab('cours')">📚<br>Cours</button>
+  <button data-tab="ia" onclick="showTab('ia')">🤖<br>IA</button>
+</nav>
+<div id="toast"></div>
+<canvas id="cf"></canvas>
 
 <script>
-const $=i=>document.getElementById(i),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-/* ---------- Données ---------- */
-let st=load(),V='study',S={},Q={},tok=null;
-function load(){let s=null;try{s=JSON.parse(localStorage.getItem('lc2')||localStorage.getItem('learncraft_db'))}catch(e){}
- s=s||{};s.cur=s.cur||s.currentNotion;s.meta=s.meta||s.coursesMeta||{};s.notions=s.notions||{};s.folders=s.folders||["Botanique","Général"];
- s.cfg=s.cfg||{key:s.apiKey||'',gid:'',gkey:'',sound:false};s.pts=s.pts||0;s.streak=s.streak||0;s.last=s.last||'';
- if(!Object.keys(s.notions).length){s.notions["Plantes médicinales"]=[{"Nom commun":"Acore odorant","Nom scientifique":"Acorus calamus","Famille":"Araceae","Photo":"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80","Utilisation":"Tonique amer et carminatif"},{"Nom commun":"Camomille","Nom scientifique":"Matricaria chamomilla","Famille":"Asteraceae","Photo":"","Utilisation":"Digestive et calmante"},{"Nom commun":"Menthe poivrée","Nom scientifique":"Mentha × piperita","Famille":"Lamiaceae","Photo":"","Utilisation":"Digestive, antispasmodique"}];s.meta["Plantes médicinales"]={folder:"Botanique"}}
- if(!s.notions[s.cur])s.cur=Object.keys(s.notions)[0];return s}
-function save(){try{localStorage.setItem('lc2',JSON.stringify(st))}catch(e){toast('⚠️ Sauvegarde impossible (stockage plein ?)')}}
-const list=()=>st.notions[st.cur]||[];
-function conf(){const m=st.meta[st.cur]||(st.meta[st.cur]={folder:'Général'});
- if(!m.headers||!m.headers.length)m.headers=list()[0]?Object.keys(list()[0]).filter(k=>k[0]!=='_'):['Nom','Description'];
- if(!m.recto||!Object.keys(m.recto).length){m.recto={};m.verso={};m.headers.forEach((h,i)=>{const r=i===0||/photo|image|visuel|illustration/i.test(h);m.recto[h]=r;m.verso[h]=!r})}
- return m}
-function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2600)}
-/* ---------- Images ---------- */
-function isImg(h,v){v=String(v||'').trim();if(!/^https?:\/\//i.test(v))return false;return /photo|image|visuel|illustration/i.test(h)||/\.(jpe?g|gif|png|webp|svg)(\?|$)/i.test(v)||/unsplash\.com|imgur\.com|wikimedia\.org|drive\.google\.com|googleusercontent/i.test(v)}
-function imgSrc(v){const m=v.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?[^ ]*?id=)([\w-]+)/);return m?`https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`:v}
-function face(c,side){const m=conf();let h='';m.headers.forEach(k=>{const v=c[k];if(!v||!m[side][k])return;
- h+=isImg(k,v)?`<img class="im" src="${esc(imgSrc(v))}" alt="" onerror="this.style.display='none'">`:`<div class="ln"><b>${esc(k)}</b>${esc(v)}</div>`});
- return h||'<p class="mu">Rien n\'est configuré pour cette face (onglet 📚 Cours → Recto / Verso).</p>'}
-/* ---------- Points, série, effets ---------- */
-function addPts(n){const t=new Date().toDateString();if(st.last!==t){const y=new Date(Date.now()-864e5).toDateString();st.streak=st.last===y?st.streak+1:1;st.last=t}st.pts+=n;save();stats()}
-function stats(){$('stats').textContent=`🔥 ${st.streak} jour${st.streak>1?'s':''} · ⭐ ${st.pts} pts · Niveau ${Math.floor(st.pts/100)+1}`}
-function beep(f){if(!st.cfg.sound)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.12)}catch(e){}}
-function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const c=$('cf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
- const P=Array.from({length:100},()=>({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,c:`hsl(${Math.random()*360},80%,60%)`,s:5+Math.random()*5}));let f=0;
- (function a(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;x.fillStyle=p.c;x.fillRect(p.x,p.y,p.s,p.s)});if(++f<100)requestAnimationFrame(a);else x.clearRect(0,0,c.width,c.height)})()}
-/* ---------- Navigation ---------- */
-function show(v){V=v;['study','qcm','courses','ai'].forEach(x=>{$('v-'+x).style.display=x===v?'block':'none';$('n-'+x).classList.toggle('on',x===v)});
- if(v==='study')startStudy();if(v==='qcm')qcmStart();if(v==='courses')renderCourses();if(v==='ai')$('gk').value=st.cfg.key||''}
-function renderSel(){const s=$('sel');s.innerHTML='';const g={};Object.keys(st.notions).forEach(k=>{const f=(st.meta[k]||{}).folder||'Général';(g[f]=g[f]||[]).push(k)});
- Object.keys(g).forEach(f=>{const og=document.createElement('optgroup');og.label='📁 '+f;g[f].forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k} (${st.notions[k].length})`;o.selected=k===st.cur;og.appendChild(o)});s.appendChild(og)})}
-function changeCourse(){st.cur=$('sel').value;save();show(V)}
-/* ---------- Révision (boîtes de Leitner, sessions de 10) ---------- */
-function startStudy(){S={q:list().map(c=>[c,(c._b||1)+Math.random()*1.5]).sort((a,b)=>a[1]-b[1]).slice(0,10).map(x=>x[0]),i:0,ok:0,re:new Set(),f:false};drawStudy()}
-function drawStudy(){const fc=$('face'),ctl=$('ctl');$('mn').style.display='none';
- if(!list().length){fc.className='';fc.innerHTML='<p class="mu">📭 Aucune carte. Va dans 📚 Cours pour importer un tableau.</p>';ctl.style.display='none';$('prog').style.width=0;$('cnt').textContent='';return}
- if(S.i>=S.q.length){ctl.style.display='none';$('prog').style.width='100%';$('cnt').textContent='Session terminée';fc.className='';
-  fc.innerHTML=`<h2>🎉 Bravo !</h2><p>${S.ok} / ${S.q.length} cartes sues du premier coup.</p><button class="big" onclick="startStudy()">🔁 Nouvelle session</button>`;if(S.ok)confetti();beep(880);return}
- ctl.style.display='block';const c=S.q[S.i];$('prog').style.width=(S.i/S.q.length*100)+'%';$('cnt').textContent=`Carte ${S.i+1}/${S.q.length} · boîte ${c._b||1}/5`;
- fc.className=S.f?'':'rc';fc.innerHTML=face(c,S.f?'verso':'recto');$('bflip').style.display=S.f?'none':'block';$('rate').style.display=S.f?'flex':'none';$('mnw').style.display=S.f?'block':'none'}
-function flip(){if(S.i>=S.q.length)return;S.f=true;const k=$('card');k.classList.remove('fl');void k.offsetWidth;k.classList.add('fl');setTimeout(drawStudy,200)}
-function rate(ok){const c=S.q[S.i];if(ok){c._b=Math.min(5,(c._b||1)+1);if(!S.re.has(c))S.ok++;addPts(10);beep(660)}else{c._b=1;if(!S.re.has(c)){S.re.add(c);S.q.push(c)}addPts(2);beep(300)}
- S.i++;S.f=false;save();drawStudy()}
-async function mnemo(){const c=S.q[S.i],b=$('mn'),m=conf(),o={};m.headers.forEach(h=>{if(c[h]&&!isImg(h,c[h]))o[h]=c[h]});
- b.style.display='block';b.textContent='✨ Génération…';const r=await groq([{role:'user',content:'Crée un moyen mnémotechnique court, drôle et facile à retenir, en français, pour mémoriser : '+JSON.stringify(o)}]);b.textContent=r?'💡 '+r:'⚠️ Pas de réponse.'}
-/* ---------- QCM ---------- */
-function qcmStart(){Q={n:0,sc:0,st:0};qcmNext()}
-function qcmNext(){const l=list(),m=conf();$('qnext').style.display='none';$('qfb').textContent='';Q.lock=false;
- const ah=m.headers.find(h=>m.verso[h]&&!isImg(h,(l.find(c=>c[h])||{})[h])),pool=ah?[...new Set(l.map(c=>c[ah]).filter(Boolean))]:[];
- if(pool.length<2){$('qhead').textContent='';$('qface').innerHTML='';$('qopts').innerHTML='';$('qask').textContent='⚠️ Il faut au moins 2 cartes avec une réponse texte au verso (voir Recto / Verso).';return}
- if(Q.n>=10){$('qface').innerHTML='';$('qopts').innerHTML=`<button class="big" onclick="qcmStart()">🔁 Rejouer</button>`;$('qask').textContent=`🏁 Score final : ${Q.sc} / 10`;$('qhead').textContent='';if(Q.sc>=7)confetti();return}
- const el=l.filter(c=>c[ah]),c=el[Math.floor(Math.random()*el.length)];Q.ans=c[ah];
- const opts=[Q.ans,...pool.filter(x=>x!==Q.ans).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
- $('qhead').textContent=`Question ${Q.n+1}/10 · Score ${Q.sc} · 🔥 série ${Q.st}`;$('qface').innerHTML=face(c,'recto');$('qask').textContent=`Quel est : ${ah} ?`;
- $('qopts').innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>qcmPick(b,o);$('qopts').appendChild(b)})}
-function qcmPick(b,v){if(Q.lock)return;Q.lock=true;Q.n++;const ok=v===Q.ans;
- [...$('qopts').children].forEach(x=>{if(x.textContent===Q.ans)x.classList.add('ok')});
- if(ok){Q.sc++;Q.st++;addPts(5+Math.min(Q.st,5));beep(660);$('qfb').style.color='var(--p)';$('qfb').textContent=Q.st>2?`✅ Bravo ! Série de ${Q.st} 🔥`:'✅ Bonne réponse !'}
- else{Q.st=0;b.classList.add('ko');beep(300);$('qfb').style.color='var(--d)';$('qfb').textContent='❌ Pas grave ! La bonne réponse est en vert.'}
- $('qhead').textContent=`Question ${Q.n}/10 · Score ${Q.sc} · 🔥 série ${Q.st}`;$('qnext').style.display='block'}
-/* ---------- Page Cours ---------- */
-function renderCourses(){const m=conf();$('cfg-title').textContent=st.cur;
- ['recto','verso'].forEach(s=>$('cfg-'+s).innerHTML=m.headers.map((h,i)=>`<label><input type="checkbox" data-s="${s}" data-i="${i}" ${m[s][h]?'checked':''}> ${esc(h)}</label>`).join(''));
- $('imp-folder').innerHTML=st.folders.map(f=>`<option>${esc(f)}</option>`).join('');
- $('man').innerHTML=m.headers.map((h,i)=>`<label class="mu">${esc(h)}</label><input type="text" id="man-${i}">`).join('');
- $('gid').value=st.cfg.gid||'';$('gkey').value=st.cfg.gkey||'';$('snd').checked=!!st.cfg.sound;
- $('clist').innerHTML=st.folders.map(f=>{const ks=Object.keys(st.notions).filter(k=>((st.meta[k]||{}).folder||'Général')===f);
-  return `<div style="margin-top:12px"><b>📁 ${esc(f)}</b>`+(ks.length?ks.map(k=>`<div class="ci"><span><b>${esc(k)}</b> (${st.notions[k].length})</span><span class="row"><button data-act="open" data-k="${esc(k)}">Ouvrir</button><select data-act="mv" data-k="${esc(k)}">${st.folders.map(x=>`<option ${x===f?'selected':''}>${esc(x)}</option>`).join('')}</select><button class="d" data-act="del" data-k="${esc(k)}">🗑️</button></span></div>`).join(''):'<p class="mu">Aucun cours.</p>')+'</div>'}).join('');
- $('th').innerHTML='<tr>'+m.headers.map(h=>`<th>${esc(h)}</th>`).join('')+'<th></th></tr>';
- $('tb').innerHTML=list().map((c,i)=>'<tr>'+m.headers.map(h=>`<td>${esc(c[h]??'')}</td>`).join('')+`<td><button class="d" data-act="dc" data-i="${i}" style="padding:3px 7px">❌</button></td></tr>`).join('')||'<tr><td colspan="9" class="mu">Aucune carte</td></tr>'}
-$('v-courses').addEventListener('change',e=>{const t=e.target;
- if(t.dataset.s){const m=conf();m[t.dataset.s][m.headers[t.dataset.i]]=t.checked;save()}
- else if(t.dataset.act==='mv'){(st.meta[t.dataset.k]=st.meta[t.dataset.k]||{}).folder=t.value;save();renderSel();renderCourses()}
- else if(t.id==='gid'||t.id==='gkey'){st.cfg[t.id]=t.value.trim();save()}});
-$('v-courses').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.tagName==='SELECT')return;const a=b.dataset.act,k=b.dataset.k;
- if(a==='open'){st.cur=k;save();renderSel();show('study')}
- else if(a==='del'&&confirm(`Supprimer le cours « ${k} » ?`)){delete st.notions[k];delete st.meta[k];if(!Object.keys(st.notions).length)st.notions['Nouveau cours']=[];if(!st.notions[st.cur])st.cur=Object.keys(st.notions)[0];save();renderSel();renderCourses()}
- else if(a==='dc'){list().splice(+b.dataset.i,1);save();renderSel();renderCourses()}});
-function addCard(){const m=conf(),c={};let any=false;m.headers.forEach((h,i)=>{const v=$('man-'+i).value.trim();c[h]=v;if(v)any=true});
- if(!any)return toast('Remplis au moins un champ');(st.notions[st.cur]=st.notions[st.cur]||[]).push(c);save();renderSel();renderCourses();toast('✨ Carte ajoutée')}
-function newFolder(){const n=$('nf').value.trim();if(!n)return toast('Entre un nom de dossier');if(st.folders.includes(n))return toast('Ce dossier existe déjà');st.folders.push(n);$('nf').value='';save();renderCourses()}
-/* ---------- Import CSV ---------- */
-function parseCSV(t,d){const r=[];let row=[''],q=false;for(let i=0;i<t.length;i++){const c=t[i];
- if(c==='"'){if(q&&t[i+1]==='"'){row[row.length-1]+='"';i++}else q=!q}
- else if(c===d&&!q)row.push('');
- else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&t[i+1]==='\n')i++;r.push(row);row=['']}
- else row[row.length-1]+=c}
- if(row.length>1||row[0]!=='')r.push(row);return r}
-function importCSV(t,name){t=t.replace(/^\uFEFF/,'').replace(/```[a-z]*\n?/gi,'').trim();
- const first=t.split(/\r?\n/)[0]||'',d=[';','\t',','].map(x=>[x,first.split(x).length]).sort((a,b)=>b[1]-a[1])[0][0],rows=parseCSV(t,d);
- if(rows.length<2)return toast('⚠️ Tableau illisible ou vide');
- const hs=rows[0].map((h,i)=>h.trim()||'Colonne '+(i+1)),data=rows.slice(1).filter(r=>r.some(x=>x.trim())).map(r=>Object.fromEntries(hs.map((h,i)=>[h,(r[i]||'').trim()])));
- let n=name||'Nouveau cours',k=n,i=2;while(st.notions[k])k=`${n} (${i++})`;
- st.notions[k]=data;st.meta[k]={folder:$('imp-folder').value||'Général',headers:hs};st.cur=k;save();renderSel();show('study');toast(`✨ « ${k} » importé (${data.length} cartes)`)}
-function importFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importCSV(r.result,f.name.replace(/\.[^.]+$/,''));r.readAsText(f);e.target.value=''}
-async function importUrl(){const m=$('gurl').value.match(/spreadsheets\/d\/([\w-]+)/);if(!m)return toast('Lien Google Sheet invalide');
- try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv`);if(!r.ok)throw 0;importCSV(await r.text(),'Google Sheet')}catch(e){toast('Impossible : le Sheet doit être partagé « toute personne avec le lien ».')}}
-/* ---------- Google Drive ---------- */
-function gAuth(){if(!st.cfg.gid)return toast('Renseigne ton Client ID Google.');if(!window.google||!google.accounts)return toast('Services Google en chargement, réessaie.');
- google.accounts.oauth2.initTokenClient({client_id:st.cfg.gid,scope:'https://www.googleapis.com/auth/drive.file',callback:r=>{if(r.error)return toast('Erreur Google : '+r.error);tok=r.access_token;$('gpick').style.display='block';toast('☁️ Drive connecté')}}).requestAccessToken({prompt:''})}
-function gPick(){if(!tok)return toast('Connecte-toi d\'abord.');if(!window.gapi)return toast('Services Google en chargement, réessaie.');
- gapi.load('picker',()=>{const pb=new google.picker.PickerBuilder().addView(new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)).setOAuthToken(tok).setCallback(async d=>{
-  if(d[google.picker.Response.ACTION]!==google.picker.Action.PICKED)return;const f=d[google.picker.Response.DOCUMENTS][0];
-  try{const r=await fetch(`https://www.googleapis.com/drive/v3/files/${f[google.picker.Document.ID]}/export?mimeType=text/csv`,{headers:{Authorization:'Bearer '+tok}});if(!r.ok)throw new Error('code '+r.status);importCSV(await r.text(),f[google.picker.Document.NAME])}catch(e){toast('⚠️ Export impossible : '+e.message)}});
-  if(st.cfg.gkey)pb.setDeveloperKey(st.cfg.gkey);pb.build().setVisible(true)})}
-/* ---------- IA (Groq) ---------- */
-async function groq(msgs){if(!st.cfg.key){toast("Ajoute ta clé Groq dans l'onglet 🤖 IA");return null}
- try{const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+st.cfg.key,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs})}),d=await r.json();
-  const t=d.choices&&d.choices[0]&&d.choices[0].message.content;if(!t)toast('Erreur IA : '+((d.error&&d.error.message)||'réponse vide'));return t||null}catch(e){toast('Erreur de connexion à Groq');return null}}
-async function aiCourse(){const p=$('aip').value.trim();if(!p)return toast('Saisis un thème ou colle ton cours');toast('⏳ L\'IA prépare tes fiches…');
- const r=await groq([{role:'user',content:'À partir du texte suivant, génère un tableau CSV strict (séparateur virgule, guillemets si besoin) avec une première ligne d\'en-têtes explicites en français, la 1re colonne étant le nom court de la notion. Aucun texte autour, uniquement le CSV brut :\n\n'+p}]);
- if(r)importCSV(r,'Cours IA '+new Date().toLocaleDateString('fr-FR'))}
-async function chat(){const i=$('ci'),m=i.value.trim();if(!m)return;const b=$('chat');const add=(who,t)=>{const d=document.createElement('div');d.textContent=who+' '+t;b.appendChild(d);b.scrollTop=b.scrollHeight};
- add('👤',m);i.value='';const hs=conf().headers,ctx=list().slice(0,20).map(c=>Object.fromEntries(hs.filter(h=>c[h]&&!isImg(h,c[h])).map(h=>[h,c[h]])));
- const r=await groq([{role:'system',content:`Tu es un tuteur bienveillant, clair et concis, qui répond en français. Contexte du cours « ${st.cur} » : ${JSON.stringify(ctx)}`},{role:'user',content:m}]);add('🤖',r||'Je n\'ai pas pu répondre.')}
-/* ---------- Démarrage ---------- */
-renderSel();stats();show('study');
-</script></body></html>
+/* =====================================================================
+   1. DONNÉES & SAUVEGARDE
+   Un "cours" = un tableau : headers (noms des colonnes) + rows (lignes).
+   front / back = numéros des colonnes affichées au recto / verso.
+   ===================================================================== */
+const SAVE_KEY = 'learncraft-data';
+let data = load();
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (saved && saved.courses) return saved;
+  } catch (e) {}
+  // Première ouverture : un cours d'exemple
+  const folder = { id: newId(), name: 'Général' };
+  const course = {
+    id: newId(), folderId: folder.id, name: 'Capitales (exemple)',
+    headers: ['Pays', 'Capitale'],
+    rows: [['France','Paris'],['Japon','Tokyo'],['Canada','Ottawa'],['Australie','Canberra'],['Brésil','Brasília']],
+    front: [0], back: [1]
+  };
+  return { folders: [folder], courses: [course], activeId: course.id, xp: 0, streak: 0, sound: true, groqKey: '', gClientId: '', gApiKey: '' };
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* navigateur sans sauvegarde */ } }
+function activeCourse() { return data.courses.find(c => c.id === data.activeId) || null; }
+
+/* =====================================================================
+   2. PETITS OUTILS
+   ===================================================================== */
+function newId() { return Math.random().toString(36).slice(2, 10); }
+function $(id) { return document.getElementById(id); }
+function shuffle(arr) { return arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(x => x[1]); }
+// Empêche le code HTML caché dans les données de s'exécuter
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function isImage(v) { return /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?\S*)?$/i.test(String(v).trim()); }
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.style.opacity = 1;
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.style.opacity = 0, 2500);
+}
+
+// Petit son (aigu = bonne réponse, grave = erreur)
+function beep(good) {
+  if (!data.sound) return;
+  try {
+    const ctx = new AudioContext(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = good ? 880 : 220; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(.15, ctx.currentTime); g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .3);
+    o.start(); o.stop(ctx.currentTime + .3);
+  } catch (e) {}
+}
+
+// Confettis 🎉
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = $('cf'), ctx = cv.getContext('2d');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const bits = Array.from({ length: 120 }, () => ({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height / 2, v: 2 + Math.random() * 4, c: `hsl(${Math.random() * 360},80%,60%)` }));
+  let frames = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    bits.forEach(b => { b.y += b.v; ctx.fillStyle = b.c; ctx.fillRect(b.x, b.y, 7, 7); });
+    if (++frames < 150) requestAnimationFrame(draw); else ctx.clearRect(0, 0, cv.width, cv.height);
+  })();
+}
+
+// Points d'expérience + série de bonnes réponses
+function reward(good) {
+  beep(good);
+  data.xp += good ? 10 : 0;
+  data.streak = good ? data.streak + 1 : 0;
+  if (good && data.streak > 0 && data.streak % 10 === 0) { confetti(); toast(`🔥 Série de ${data.streak} !`); }
+  save(); renderStats();
+}
+function renderStats() { $('stats').textContent = `⭐ ${data.xp} XP · 🔥 série ${data.streak}`; }
+
+// Lit un texte CSV (séparé par des virgules) et le transforme en tableau
+function parseCSV(text) {
+  const out = []; let row = [], cur = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"' && text[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') inQuotes = false;
+      else cur += ch;
+    } else if (ch === '"') inQuotes = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); cur = ''; if (row.some(c => c.trim())) out.push(row); row = [];
+    } else cur += ch;
+  }
+  row.push(cur); if (row.some(c => c.trim())) out.push(row);
+  return out;
+}
+// Récupère l'identifiant d'un Google Sheet à partir de son lien
+function sheetIdFromLink(link) { const m = String(link).match(/\/d\/([a-zA-Z0-9-_]+)/); return m ? m[1] : null; }
+
+/* =====================================================================
+   3. NAVIGATION ENTRE ONGLETS
+   ===================================================================== */
+function showTab(name) {
+  ['rev', 'qcm', 'cours', 'ia'].forEach(t => $('tab-' + t).classList.toggle('hide', t !== name));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  if (name === 'rev') startReview();
+  if (name === 'qcm') newQuestion();
+  if (name === 'cours') renderCourses();
+}
+function setActive(id) { data.activeId = id; save(); renderAll(); }
+
+// Remplit la liste déroulante des cours (rangés par dossier)
+function renderCourseSelect() {
+  $('courseSel').innerHTML = data.folders.map(f =>
+    `<optgroup label="${esc(f.name)}">` +
+    data.courses.filter(c => c.folderId === f.id).map(c =>
+      `<option value="${c.id}" ${c.id === data.activeId ? 'selected' : ''}>${esc(c.name)} (${c.rows.length})</option>`).join('') +
+    `</optgroup>`).join('');
+}
+
+/* =====================================================================
+   4. RÉVISION (CARTES RECTO / VERSO)
+   Les cartes ratées repartent en fin de paquet.
+   ===================================================================== */
+let queue = [], doneCount = 0, showingBack = false;
+
+function startReview() {
+  const c = activeCourse();
+  queue = c ? shuffle([...c.rows.keys()]) : [];
+  doneCount = 0; showingBack = false; renderCard();
+}
+
+// Construit l'affichage d'une face à partir des colonnes choisies
+function faceHTML(c, row, cols) {
+  return cols.map(i => {
+    const v = row[i] ?? '';
+    if (isImage(v)) return `<img class="im" src="${esc(v.trim())}" alt="${esc(c.headers[i])}">`;
+    return `<div class="ln"><b>${esc(c.headers[i])}</b>${esc(v)}</div>`;
+  }).join('');
+}
+
+function renderCard() {
+  const c = activeCourse(), face = $('face');
+  $('mn').style.display = 'none';
+  $('revBar').style.width = c && c.rows.length ? (doneCount / c.rows.length * 100) + '%' : '0';
+  if (!c || !c.rows.length) {
+    face.innerHTML = '<p>Ajoute des fiches dans l\'onglet 📚 Cours.</p>';
+    $('btnFlip').classList.add('hide'); $('answerBtns').classList.add('hide'); return;
+  }
+  if (!queue.length) {
+    face.innerHTML = '<p style="font-size:40px">🎉</p><h3>Bravo, cours terminé !</h3><button onclick="startReview()">Recommencer</button>';
+    $('btnFlip').classList.add('hide'); $('answerBtns').classList.add('hide'); confetti(); return;
+  }
+  const row = c.rows[queue[0]];
+  face.className = 'card fl ' + (showingBack ? '' : 'rc');
+  face.innerHTML = faceHTML(c, row, showingBack ? c.back : c.front);
+  void face.offsetWidth; // relance l'animation
+  $('btnFlip').classList.toggle('hide', showingBack);
+  $('answerBtns').classList.toggle('hide', !showingBack);
+}
+function flipCard() { showingBack = true; renderCard(); }
+function answerCard(good) {
+  reward(good);
+  const current = queue.shift();
+  if (good) doneCount++; else queue.push(current);
+  showingBack = false; renderCard();
+}
+
+/* =====================================================================
+   5. QCM
+   Question = recto ; bonne réponse = 1ère colonne du verso.
+   ===================================================================== */
+function newQuestion() {
+  const c = activeCourse(), box = $('qcmBox');
+  $('btnNext').classList.add('hide');
+  if (!c || c.rows.length < 2) { box.innerHTML = '<p>Il faut au moins 2 fiches pour un QCM.</p>'; return; }
+  const ansCol = c.back[0] ?? 1;
+  const i = Math.floor(Math.random() * c.rows.length);
+  const good = c.rows[i][ansCol] ?? '';
+  const wrong = shuffle([...new Set(c.rows.map(r => r[ansCol]).filter(v => v && v !== good))]).slice(0, 3);
+  const options = shuffle([good, ...wrong]);
+  box.innerHTML = faceHTML(c, c.rows[i], c.front) +
+    options.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join('');
+  box.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+    const picked = options[btn.dataset.k];
+    box.querySelectorAll('.opt').forEach(b => {
+      b.disabled = true;
+      if (options[b.dataset.k] === good) b.classList.add('ok');
+    });
+    if (picked !== good) btn.classList.add('ko');
+    reward(picked === good);
+    $('btnNext').classList.remove('hide');
+  });
+}
+
+/* =====================================================================
+   6. IMPORT GOOGLE SHEET (LIEN PUBLIC)
+   ===================================================================== */
+async function importPublicSheet() {
+  const link = $('sheetLink').value, id = sheetIdFromLink(link);
+  if (!id) return toast('Lien invalide');
+  const gid = (link.match(/gid=(\d+)/) || [])[1] || '0';
+  try {
+    const res = await fetch(`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`);
+    if (!res.ok) throw new Error();
+    addImportedCourse('Import ' + new Date().toLocaleDateString('fr'), parseCSV(await res.text()));
+    $('sheetLink').value = '';
+  } catch (e) { toast('Échec : ce Sheet n\'est pas public. Utilise la partie « Google Drive (privé) ».'); }
+}
+
+// Crée un cours à partir d'un tableau (1ère ligne = noms des colonnes)
+function addImportedCourse(name, table) {
+  if (!table || table.length < 2) return toast('Tableau vide');
+  const width = Math.max(...table.map(r => r.length));
+  const headers = Array.from({ length: width }, (_, i) => table[0][i] || 'Colonne ' + (i + 1));
+  const rows = table.slice(1).map(r => headers.map((_, i) => r[i] ?? ''));
+  const c = { id: newId(), folderId: $('destFolder').value || data.folders[0].id, name, headers, rows, front: [0], back: width > 1 ? [1] : [0] };
+  data.courses.push(c); data.activeId = c.id; save(); renderAll();
+  toast(`✅ ${rows.length} fiches importées`);
+}
+
+/* =====================================================================
+   7. GOOGLE PRIVÉ (CONNEXION + CHOIX D'UN SHEET)
+   Lecture seule : l'appli ne peut rien modifier dans ton Drive.
+   ===================================================================== */
+const G_SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly';
+let gToken = null;
+
+function googleLogin() {
+  data.gClientId = $('gClientId').value.trim(); data.gApiKey = $('gApiKey').value.trim(); save();
+  if (location.protocol === 'file:') return toast('Ouvre le fichier en http(s), pas en file://');
+  if (!data.gClientId) return toast('Renseigne le Client ID');
+  if (!window.google?.accounts) return toast('Chargement de Google… réessaie dans 2 secondes');
+  google.accounts.oauth2.initTokenClient({
+    client_id: data.gClientId, scope: G_SCOPES,
+    callback: resp => {
+      if (resp.error) return toast('Connexion refusée : ' + resp.error);
+      gToken = resp.access_token;
+      $('gStatus').textContent = '✅ Connecté à Google';
+      toast('Connecté à Google ✅');
+    }
+  }).requestAccessToken();
+}
+
+// Ouvre la fenêtre Google pour choisir un Sheet dans ton Drive
+function pickSheet() {
+  if (!gToken) return toast('Connecte-toi d\'abord à Google');
+  if (!data.gApiKey) return toast('Renseigne la clé API');
+  gapi.load('picker', () => {
+    new google.picker.PickerBuilder()
+      .addView(google.picker.ViewId.SPREADSHEETS)
+      .setOAuthToken(gToken).setDeveloperKey(data.gApiKey)
+      .setCallback(r => { if (r.action === google.picker.Action.PICKED) importPrivateSheet(r.docs[0].id, r.docs[0].name); })
+      .build().setVisible(true);
+  });
+}
+function importPrivateLink() {
+  const id = sheetIdFromLink($('privLink').value);
+  if (!id) return toast('Lien invalide');
+  importPrivateSheet(id); $('privLink').value = '';
+}
+
+// Lit le 1er onglet du Sheet privé avec l'API Google Sheets
+async function importPrivateSheet(id, name) {
+  if (!gToken) return toast('Connecte-toi d\'abord à Google');
+  const headers = { Authorization: 'Bearer ' + gToken };
+  try {
+    const meta = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=properties.title,sheets.properties.title`, { headers })).json();
+    if (meta.error) throw new Error(meta.error.message);
+    const tab = meta.sheets[0].properties.title;
+    const vals = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(tab)}`, { headers })).json();
+    if (vals.error) throw new Error(vals.error.message);
+    addImportedCourse(name || meta.properties.title, vals.values);
+  } catch (e) { toast('Erreur Google : ' + e.message); }
+}
+
+// Crée un dossier au nom du Sheet, et un cours pour chaque onglet
+async function importFolderFromLink() {
+  if (!gToken) return toast('Connecte-toi d\'abord à Google');
+  const id = sheetIdFromLink($('privLink').value);
+  if (!id) return toast('Colle d\'abord le lien du Sheet');
+  const headers = { Authorization: 'Bearer ' + gToken };
+  try {
+    const meta = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}?fields=properties.title,sheets.properties.title`, { headers })).json();
+    if (meta.error) throw new Error(meta.error.message);
+    const folder = { id: newId(), name: meta.properties.title };
+    data.folders.push(folder);
+    let count = 0;
+    for (const sh of meta.sheets) {
+      const tab = sh.properties.title;
+      const vals = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(tab)}`, { headers })).json();
+      const table = vals.values || [];
+      if (table.length < 2) continue; // onglet vide : ignoré
+      const width = Math.max(...table.map(r => r.length));
+      const cols = Array.from({ length: width }, (_, i) => table[0][i] || 'Colonne ' + (i + 1));
+      const rows = table.slice(1).map(r => cols.map((_, i) => r[i] ?? ''));
+      const c = { id: newId(), folderId: folder.id, name: tab, headers: cols, rows, front: [0], back: width > 1 ? [1] : [0] };
+      data.courses.push(c); data.activeId = c.id; count++;
+    }
+    $('privLink').value = ''; save(); renderAll();
+    toast(`📁 Dossier « ${folder.name} » créé avec ${count} cours`);
+  } catch (e) { toast('Erreur Google : ' + e.message); }
+}
+
+/* =====================================================================
+   8. DOSSIERS, COURS, CARTES (écran 📚 Cours)
+   ===================================================================== */
+function renderCourses() {
+  const c = activeCourse();
+  // Recto / verso
+  $('rvName').textContent = c ? c.name : '';
+  ['front', 'back'].forEach(side => {
+    $(side === 'front' ? 'rvFront' : 'rvBack').innerHTML = c ? c.headers.map((h, i) =>
+      `<label><input type="checkbox" ${c[side].includes(i) ? 'checked' : ''} onchange="toggleColumn('${side}',${i})"> ${esc(h)}</label>`).join('') : '';
+  });
+  // Dossier de destination
+  $('destFolder').innerHTML = data.folders.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  // Ajout de carte : les champs portent le nom des colonnes choisies
+  if (c) { $('addFront').placeholder = c.headers[c.front[0] ?? 0] || 'Recto'; $('addBack').placeholder = c.headers[c.back[0] ?? 1] || 'Verso'; }
+  // Liste des cours
+  $('courseList').innerHTML = data.courses.map(x => `
+    <div class="ci">
+      <span>${x.id === data.activeId ? '▶ ' : ''}<b>${esc(x.name)}</b> · ${x.rows.length} fiches</span>
+      <span>
+        <select onchange="moveCourse('${x.id}',this.value)">${data.folders.map(f => `<option value="${f.id}" ${f.id === x.folderId ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select>
+        <button class="g" onclick="setActive('${x.id}')">Choisir</button>
+        <button class="d" onclick="deleteCourse('${x.id}')">🗑️</button>
+      </span>
+    </div>`).join('');
+  // Aperçu en tableau
+  $('preview').innerHTML = c && c.rows.length
+    ? `<table><tr>${c.headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${c.rows.map(r => `<tr>${c.headers.map((_, i) => `<td>${esc(r[i])}</td>`).join('')}</tr>`).join('')}</table>`
+    : '<p class="mu" style="padding:10px">Aucune fiche.</p>';
+  $('soundOn').checked = data.sound;
+}
+function toggleColumn(side, i) {
+  const c = activeCourse(); if (!c) return;
+  c[side] = c[side].includes(i) ? c[side].filter(x => x !== i) : [...c[side], i].sort((a, b) => a - b);
+  save();
+}
+function addCard() {
+  const c = activeCourse(), f = $('addFront').value.trim(), b = $('addBack').value.trim();
+  if (!c) return toast('Crée d\'abord un cours');
+  if (!f || !b) return toast('Remplis les deux champs');
+  const row = c.headers.map(() => '');
+  row[c.front[0] ?? 0] = f; row[c.back[0] ?? 1] = b;
+  c.rows.push(row); save(); renderAll();
+  $('addFront').value = $('addBack').value = ''; toast('Carte ajoutée ✅');
+}
+function createFolder() {
+  const name = $('newFolder').value.trim(); if (!name) return;
+  data.folders.push({ id: newId(), name }); $('newFolder').value = ''; save(); renderAll();
+}
+function createCourse() {
+  const name = $('newCourse').value.trim(); if (!name) return;
+  const c = { id: newId(), folderId: $('destFolder').value || data.folders[0].id, name, headers: ['Recto', 'Verso'], rows: [], front: [0], back: [1] };
+  data.courses.push(c); data.activeId = c.id; $('newCourse').value = ''; save(); renderAll();
+}
+function moveCourse(id, folderId) { data.courses.find(c => c.id === id).folderId = folderId; save(); renderCourseSelect(); }
+function deleteCourse(id) {
+  if (!confirm('Supprimer ce cours ?')) return;
+  data.courses = data.courses.filter(c => c.id !== id);
+  if (data.activeId === id) data.activeId = data.courses[0]?.id || null;
+  save(); renderAll();
+}
+function toggleSound(on) { data.sound = on; save(); }
+
+/* =====================================================================
+   9. IA GROQ (génération de fiches, astuces, chat)
+   ===================================================================== */
+function saveGroqKey(v) { data.groqKey = v.trim(); save(); toast('Clé enregistrée'); }
+
+async function askGroq(system, prompt) {
+  if (!data.groqKey) throw new Error('Ajoute ta clé Groq dans l\'onglet 🤖 IA');
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + data.groqKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] })
+  });
+  const j = await res.json();
+  if (!res.ok) throw new Error(j.error?.message || 'Erreur ' + res.status);
+  return j.choices[0].message.content;
+}
+
+async function mnemonic() {
+  const c = activeCourse(); if (!c || !queue.length) return;
+  const row = c.rows[queue[0]], box = $('mn'), btn = $('btnMn');
+  btn.disabled = true; box.style.display = 'block'; box.textContent = '⏳ Réflexion…';
+  try {
+    box.textContent = await askGroq('Tu crées des moyens mnémotechniques courts, drôles et visuels en français pour un élève TDAH. 3 lignes maximum.',
+      c.headers.map((h, i) => `${h} : ${row[i]}`).join('\n'));
+  } catch (e) { box.textContent = '⚠️ ' + e.message; }
+  btn.disabled = false;
+}
+
+async function generateCourse() {
+  const topic = $('genTopic').value.trim(), n = +$('genCount').value || 10, btn = $('btnGen');
+  if (!topic) return toast('Indique un sujet');
+  btn.disabled = true; btn.textContent = '⏳ Génération…';
+  try {
+    const txt = await askGroq('Réponds UNIQUEMENT avec du JSON valide, sans texte autour.',
+      `Crée ${n} fiches de révision en français sur « ${topic} ». Format : [{"q":"question courte","r":"réponse courte"}]`);
+    const list = JSON.parse(txt.slice(txt.indexOf('['), txt.lastIndexOf(']') + 1));
+    const c = { id: newId(), folderId: data.folders[0].id, name: topic, headers: ['Question', 'Réponse'], rows: list.map(x => [x.q, x.r]), front: [0], back: [1] };
+    data.courses.push(c); data.activeId = c.id; save(); renderAll();
+    $('genTopic').value = ''; toast(`✅ ${list.length} fiches créées`);
+  } catch (e) { toast('⚠️ ' + e.message); }
+  btn.disabled = false; btn.textContent = '🤖 Générer les fiches';
+}
+
+async function sendChat() {
+  const input = $('chatInput'), q = input.value.trim(), chat = $('chat'); if (!q) return;
+  input.value = '';
+  chat.insertAdjacentHTML('beforeend', `<div style="text-align:right"><b>${esc(q)}</b></div>`);
+  const c = activeCourse();
+  const context = c ? c.rows.slice(0, 200).map(r => r.join(' | ')).join('\n') : '(aucun cours)';
+  try {
+    const a = await askGroq(`Tu es un tuteur bienveillant pour un élève TDAH. Réponses courtes, claires, avec des emojis. Fiches du cours :\n${context}`, q);
+    chat.insertAdjacentHTML('beforeend', `<div>🤖 ${esc(a)}</div>`);
+  } catch (e) { chat.insertAdjacentHTML('beforeend', `<div>⚠️ ${esc(e.message)}</div>`); }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/* =====================================================================
+   10. DÉMARRAGE
+   ===================================================================== */
+function renderAll() { renderStats(); renderCourseSelect(); renderCourses(); startReview(); }
+$('groqKey').value = data.groqKey || '';
+$('gClientId').value = data.gClientId || '';
+$('gApiKey').value = data.gApiKey || '';
+renderAll();
+</script>
+</body>
+</html>
