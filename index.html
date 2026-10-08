@@ -1,1540 +1,218 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnCraft TDAH - Révisions, Google Drive & IA</title>
-  
-  <!-- SDKs Google OAuth2 et Google Picker -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://apis.google.com/js/api.js" async defer></script>
-  <style>
-    /* ==========================================
-       1. VARIABLES GLOBALES & CHARTE GRAPHIQUE
-       ========================================== */
-    :root {
-      --primary: #2e7d32;
-      --primary-dark: #1b5e20;
-      --primary-light: #e8f5e9;
-      --accent: #81c784;
-      --bg: #f4f6f8;
-      --card-bg: #ffffff;
-      --text: #333333;
-      --text-muted: #666666;
-      --ai-purple: #7b1fa2;
-      --ai-purple-dark: #4a148c;
-      --ai-purple-light: #f3e5f5;
-      --drive-blue: #1565c0;
-      --drive-blue-dark: #0d47a1;
-      --drive-blue-light: #e3f2fd;
-      --danger: #d32f2f;
-      --danger-dark: #b71c1c;
-      --warning: #f57c00;
-      --warning-dark: #e65100;
-      --border-color: #e0e0e0;
-      --shadow-sm: 0 3px 6px rgba(0,0,0,0.1);
-      --shadow-md: 0 5px 15px rgba(0,0,0,0.08);
-      --shadow-lg: 0 10px 35px rgba(0,0,0,0.12);
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-    }
-
-    /* ==========================================
-       2. STYLES DE BASE & TYPOGRAPHIE
-       ========================================== */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      margin: 0;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-
-    h1 {
-      color: var(--primary);
-      margin-top: 0;
-      margin-bottom: 5px;
-      font-size: 28px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    p {
-      line-height: 1.6;
-      margin-top: 0;
-    }
-
-    /* ==========================================
-       3. NAVIGATION & BOUTONS PRINCIPAUX
-       ========================================== */
-    .nav-btns {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-      max-width: 750px;
-    }
-
-    button {
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 11px 18px;
-      border-radius: var(--radius-md);
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 600;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    button:hover {
-      background: var(--primary-dark);
-      box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-
-    .btn-secondary {
-      background: #5c6bc0;
-    }
-
-    .btn-secondary:hover {
-      background: #3f51b5;
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: #ffffff;
-    }
-
-    .btn-warning:hover {
-      background: var(--warning-dark);
-    }
-
-    .btn-ai {
-      background: var(--ai-purple);
-      color: #ffffff;
-    }
-
-    .btn-ai:hover {
-      background: var(--ai-purple-dark);
-    }
-
-    .btn-drive {
-      background: var(--drive-blue);
-      color: #ffffff;
-    }
-
-    .btn-drive:hover {
-      background: var(--drive-blue-dark);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #ffffff;
-    }
-
-    .btn-danger:hover {
-      background: var(--danger-dark);
-    }
-
-    /* ==========================================
-       4. CONTENEUR & CARTES
-       ========================================== */
-    .container {
-      width: 100%;
-      max-width: 750px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-lg);
-      padding: 30px;
-      text-align: center;
-      box-sizing: border-box;
-      border: 1px solid #eaeaea;
-      position: relative;
-      margin-bottom: 25px;
-    }
-
-    .plant-img {
-      width: 100%;
-      max-height: 300px;
-      object-fit: contain;
-      border-radius: var(--radius-lg);
-      margin-bottom: 20px;
-      background-color: #fafafa;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid #eee;
-    }
-
-    .badge {
-      display: inline-block;
-      background: var(--primary-light);
-      color: var(--primary);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      border: 1px solid #c8e6c9;
-    }
-
-    .sync-status {
-      font-size: 12px;
-      font-weight: bold;
-      color: var(--drive-blue);
-      margin-bottom: 15px;
-      background: var(--drive-blue-light);
-      padding: 6px 14px;
-      border-radius: 20px;
-      display: inline-block;
-    }
-
-    .details {
-      text-align: left;
-      margin-top: 20px;
-      border-top: 2px dashed var(--border-color);
-      padding-top: 20px;
-      display: none;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .details p {
-      margin: 12px 0;
-      font-size: 15px;
-      white-space: pre-line;
-      line-height: 1.6;
-    }
-
-    .details strong {
-      color: var(--primary);
-    }
-
-    .mnemonic-box {
-      background: var(--ai-purple-light);
-      border-left: 4px solid var(--ai-purple);
-      padding: 14px 16px;
-      border-radius: var(--radius-sm);
-      margin-top: 20px;
-      text-align: left;
-      font-size: 14px;
-      color: var(--ai-purple-dark);
-      display: none;
-      line-height: 1.5;
-    }
-
-    /* ==========================================
-       5. BOÎTES DE SECTION & FORMULAIRES
-       ========================================== */
-    .section-box {
-      background: #ffffff;
-      padding: 22px;
-      border-radius: var(--radius-lg);
-      margin-bottom: 20px;
-      text-align: left;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .section-box h3 {
-      margin-top: 0;
-      color: var(--primary);
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    input[type="file"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px 12px;
-      margin: 6px 0 14px 0;
-      border: 1px solid #ccc;
-      border-radius: var(--radius-sm);
-      box-sizing: border-box;
-      font-size: 14px;
-      font-family: inherit;
-      background: #ffffff;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
-    }
-
-    .checkbox-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      font-size: 14px;
-      margin-top: 10px;
-    }
-
-    .checkbox-grid label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      background: #ffffff;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid #eaeaea;
-      transition: background 0.2s ease;
-    }
-
-    .checkbox-grid label:hover {
-      background: var(--primary-light);
-    }
-
-    .checkbox-grid input[type="checkbox"] {
-      width: auto;
-      margin: 0;
-      accent-color: var(--primary);
-      transform: scale(1.1);
-    }
-
-    .folder-group-box {
-      background: #fafbfc;
-      border: 1px solid #e1e4e8;
-      border-radius: var(--radius-md);
-      padding: 15px;
-      margin-bottom: 15px;
-    }
-
-    .course-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 12px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: var(--radius-sm);
-      margin-top: 8px;
-      font-size: 13px;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    /* ==========================================
-       6. TABLEAUX & APERÇU DE DONNÉES
-       ========================================== */
-    .table-scroll-container {
-      max-height: 280px;
-      overflow-x: auto;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      margin-top: 10px;
-    }
-
-    .preview-table {
-      width: 100%;
-      min-width: 600px;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .preview-table th,
-    .preview-table td {
-      border: 1px solid var(--border-color);
-      padding: 8px 10px;
-      text-align: left;
-      vertical-align: top;
-      white-space: pre-line;
-    }
-
-    .preview-table th {
-      background-color: #f5f5f5;
-      color: var(--primary);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    /* ==========================================
-       7. MODE QCM & CHAT IA
-       ========================================== */
-    .qcm-options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .qcm-btn {
-      background: #f8f9fa;
-      color: var(--text);
-      border: 1px solid #ccd0d5;
-      padding: 14px 16px;
-      border-radius: var(--radius-md);
-      text-align: left;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .qcm-btn:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      color: var(--primary);
-      transform: translateY(-2px);
-    }
-
-    .flex-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .chat-box {
-      background: #fafafa;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      max-height: 260px;
-      overflow-y: auto;
-      margin-bottom: 12px;
-    }
-
-    .chat-msg {
-      margin: 8px 0;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .chat-user {
-      color: var(--primary);
-      font-weight: bold;
-    }
-
-    .chat-ai {
-      color: var(--ai-purple);
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- TITRE ET BADGE DE SYNCHRONISATION -->
-  <h1>🌿 LearnCraft</h1>
-  <div id="sync-info" class="sync-status">💾 Stockage local & Services prêts</div>
-
-  <!-- BARRE DE NAVIGATION ET VUES -->
-  <div class="nav-btns">
-    <button onclick="switchView('flashcard')">🎴 Révision Ludique</button>
-    <button onclick="switchView('qcm')">❓ Mode QCM</button>
-    <button onclick="switchView('config-volets')" class="btn-warning">🎛️ Config Recto / Verso</button>
-    <button onclick="switchView('ai-assistant')" class="btn-ai">🤖 Assistant & IA</button>
-    <button onclick="switchView('manager')" class="btn-secondary">⚙️ Réglages & Google Drive</button>
-  </div>
-
-  <div class="container">
-
-    <!-- BARRE DE SÉLECTION DU COURS ACTIF -->
-    <div id="selector-bar" class="section-box" style="padding:12px 15px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-      <div style="flex:1; min-width:220px;">
-        <label for="notion-select" style="font-size:13px; color:#555;"><strong>📂 Cours actif :</strong></label>
-        <select id="notion-select" onchange="changeNotion()"></select>
-      </div>
-      <div id="card-counter" class="badge" style="margin:0; background:#e3f2fd; color:var(--drive-blue); border-color:#90caf9;">
-        📊 Carte 1 / 1
-      </div>
-    </div>
-
-    <!-- ==========================================
-       VUE 1 : RÉVISION FLASHCARD (RECTO / VERSO)
-       ========================================== -->
-    <div id="view-flashcard" class="card">
-      <div id="recto-container"></div>
-      
-      <button onclick="toggleDetails()" class="btn-warning" style="margin-top:25px; width: 100%; padding: 14px; font-size:15px; border-radius:14px;">
-        👀 Retourner la carte (Afficher le Verso)
-      </button>
-      
-      <div id="fc-details" class="details">
-        <div id="verso-content-list"></div>
-        <button onclick="generateMnemonic()" class="btn-ai" style="width: 100%; margin-top: 20px; padding: 12px; border-radius:12px;">
-          ✨ 💡 Moyen Mnémotechnique IA
-        </button>
-        <div id="fc-mnemonic" class="mnemonic-box"></div>
-      </div>
-
-      <div style="margin-top: 30px; display: flex; justify-content: space-between; gap: 15px;">
-        <button onclick="prevCard()" style="background: #78909c; flex: 1; padding: 12px; border-radius:12px;">⬅️ Précédent</button>
-        <button onclick="nextCard()" style="flex: 1; padding: 12px; border-radius:12px;">Suivant ➡️</button>
-      </div>
-    </div>
-
-    <!-- ==========================================
-       VUE 2 : MODE QCM INTERACTIF
-       ========================================== -->
-    <div id="view-qcm" class="card" style="display: none;">
-      <span id="qcm-badge" class="badge">🎯 Défi QCM</span>
-      <h3 id="qcm-question" style="font-size: 19px; color: var(--primary); margin-top: 10px; line-height: 1.4;">Question de révision</h3>
-      <div id="qcm-options" class="qcm-options"></div>
-      <div id="qcm-feedback" style="margin-top: 20px; font-weight: bold; font-size: 16px;"></div>
-      <button id="qcm-next-btn" onclick="renderQCM()" class="btn-primary" style="margin-top: 20px; width: 100%; padding: 12px; border-radius:12px; display: none;">
-        Question suivante ➡️
-      </button>
-    </div>
-
-    <!-- ==========================================
-       VUE 3 : CONFIGURATION RECTO / VERSO
-       ========================================== -->
-    <div id="view-config-volets" class="section-box" style="display: none; border-left: 5px solid var(--warning);">
-      <h3 style="color: var(--warning);">🎛️ Configuration Recto / Verso pour : <span id="config-course-title" style="color:var(--primary);"></span></h3>
-      <p style="font-size:13px; color:#555;">Cochez les informations que vous souhaitez voir afficher au Recto (face visible) et au Verso (caché au dos) pour ce cours spécifique.</p>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-        <div style="background: #fafafa; padding: 15px; border-radius: 12px; border:1px solid #e0e0e0;">
-          <h4 style="margin-top:0; color:var(--primary);">📤 Éléments du RECTO</h4>
-          <div id="recto-checkboxes" class="checkbox-grid"></div>
-        </div>
-
-        <div style="background: #fafafa; padding: 15px; border-radius: 12px; border:1px solid #e0e0e0;">
-          <h4 style="margin-top:0; color:var(--warning);">📥 Éléments du VERSO</h4>
-          <div id="verso-checkboxes" class="checkbox-grid"></div>
-        </div>
-      </div>
-
-      <button onclick="switchView('flashcard')" class="btn-primary" style="width:100%; margin-top: 20px; padding: 12px; border-radius:12px;">
-        💾 Enregistrer & Retourner aux révisions
-      </button>
-    </div>
-
-    <!-- ==========================================
-       VUE 4 : ASSISTANT IA & GÉNÉRATEUR
-       ========================================== -->
-    <div id="view-ai-assistant" style="display: none;">
-      
-      <!-- GENERATION DE COURS VIA L'IA -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">✨ Générateur de Cours Automatique IA</h3>
-        <p style="font-size:13px; color:#555;">Saisissez un sujet ou collez votre cours brut. L'IA va créer instantanément un tableau de fiches de révision structuré.</p>
-        <textarea id="ai-course-prompt" rows="4" placeholder="Exemple : Crée-moi 5 fiches de cours sur le système cardiovasculaire avec le nom, la fonction et l'anatomie..."></textarea>
-        <button onclick="generateAICourse()" class="btn-ai" style="width:100%;">🤖 Générer automatiquement le cours</button>
-        <div id="ai-status" style="display:none; color:var(--ai-purple); font-weight:bold; margin-top:8px;">⏳ L'IA analyse et prépare tes fiches...</div>
-      </div>
-
-      <!-- CHAT INTERACTIF AVEC L'IA -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">💬 Poser une question sur tes cours</h3>
-        <p style="font-size:13px; color:#555;">Une interrogation sur le cours actif ou un point à éclaircir ? Demande à ton tuteur IA !</p>
-        <div id="chat-box" class="chat-box">
-          <div class="chat-msg"><span class="chat-ai">🤖 Assistant :</span> Bonjour ! Pose-moi n'importe quelle question sur tes fiches de révision.</div>
-        </div>
-        <div class="flex-row">
-          <input type="text" id="chat-input" placeholder="Pose ta question ici..." style="margin:0;">
-          <button onclick="sendChatMessage()" class="btn-ai" style="white-space:nowrap;">Envoyer 🚀</button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- GOOGLE DRIVE & GOOGLE SHEETS (MODE PRIVÉ) -->
-      <div class="section-box" style="border-left: 5px solid var(--drive-blue);">
-        <h3 style="color: var(--drive-blue);">☁️ Intégration Google Drive (Mode Privé)</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Connectez votre compte Google pour sélectionner et importer directement vos fichiers Google Sheets privés.</p>
-        
-        <div class="flex-row" style="margin-bottom:12px;">
-          <button id="btn-gdrive-login" onclick="handleGoogleAuth()" class="btn-drive" style="flex:1;">👤 Se connecter à Google Drive</button>
-        </div>
-        
-        <div id="gdrive-actions" style="display:none;">
-          <label><strong>Sélectionner un fichier Google Sheet privé :</strong></label>
-          <button onclick="openGooglePicker()" class="btn-secondary" style="width:100%; margin-top:6px;">📂 Ouvrir mon Google Drive</button>
-        </div>
-      </div>
-    
-      <!-- CONFIGURATION API GROQ -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">🔑 Clé API Groq (Optionnel - Pour l'IA)</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Collez votre clé gratuite Groq (`gsk_...`) pour débloquer l'assistant mnémotechnique et la création automatique.</p>
-        <input type="password" id="api-key-input" placeholder="Colle ta clé API Groq ici (gsk_...)..." onchange="saveApiKey()">
-      </div>
-
-      <!-- GOOGLE DRIVE & GOOGLE SHEETS -->
-      <div class="section-box" style="border-left: 5px solid var(--drive-blue);">
-        <h3 style="color: var(--drive-blue);">☁️ Intégration Google Drive & Google Sheets</h3>
-        <p style="font-size:13px; color:#555; margin-top:0;">Connectez votre compte Google ou collez directement le lien public d'un Google Sheet pour importer vos cours.</p>
-        
-        <div style="margin-bottom:12px;">
-          <div id="g_id_onload"
-               data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-               data-callback="handleCredentialResponse">
-          </div>
-          <button onclick="connectGoogleAccount()" class="btn-drive" style="width:100%;">👤 Se connecter avec Google</button>
-        </div>
-        
-        <label><strong>Lien public d'un Google Sheet (CSV / Export) :</strong></label>
-        <input type="text" id="gdrive-url-input" placeholder="Coller l'URL de votre Google Sheet..." style="margin-bottom:8px;">
-        <button onclick="importGoogleSheetUrl()" class="btn-secondary" style="width:100%;">📥 Importer depuis ce lien Google Sheet</button>
-      </div>
-
-      <!-- IMPORT CSV LOCAL -->
-      <div class="section-box" style="border-left: 5px solid var(--primary);">
-        <h3 style="color:var(--primary);">📁 Importer un tableau CSV local</h3>
-        <label><strong>Dossier de destination :</strong></label>
-        <select id="import-folder-select" style="margin-bottom:12px;"></select>
-        <input type="file" id="csv-file-input" accept=".csv" onchange="importLocalCSV(event)">
-      </div>
-
-      <!-- AJOUT MANUEL DE CARTE -->
-      <div class="section-box" style="border-left: 5px solid var(--ai-purple);">
-        <h3 style="color: var(--ai-purple);">✍️ Ajouter une carte manuellement au cours actif</h3>
-        <div id="manual-inputs-container"></div>
-        <button onclick="addManualCard()" class="btn-ai" style="width:100%; margin-top:10px;">➕ Ajouter cette carte</button>
-      </div>
-
-      <!-- GESTION DES DOSSIERS & COURS -->
-      <div class="section-box" style="border-left: 5px solid var(--danger);">
-        <h3 style="color: var(--danger);">📂 Gestion des Dossiers & Cours</h3>
-        <div class="flex-row" style="margin-bottom:12px;">
-          <input type="text" id="new-folder-input" placeholder="Nom du nouveau dossier..." style="margin:0;">
-          <button onclick="createNewFolder()" class="btn-secondary" style="white-space:nowrap; padding: 10px 14px;">➕ Créer dossier</button>
-        </div>
-        <div id="courses-list"></div>
-      </div>
-
-      <!-- APERÇU DU TABLEAU ET DONNÉES -->
-      <div class="section-box" style="border-left: 5px solid var(--secondary);">
-        <h3>📋 Aperçu des cartes du cours actif</h3>
-        <div class="table-scroll-container">
-          <table class="preview-table">
-            <thead>
-              <tr id="preview-table-head"></tr>
-            </thead>
-            <tbody id="preview-table-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- ==========================================
-     LOGIQUE JAVASCRIPT COMPLET & GESTION
-     ========================================== -->
-  <script>
-    /* ==========================================
-       1. INITIALISATION DES DONNÉES LOCALES
-       ========================================== */
-    let store = JSON.parse(localStorage.getItem('learncraft_db')) || {
-      currentNotion: "Plantes Médicinales",
-      apiKey: "",
-      folders: ["Botanique", "Général"],
-      coursesMeta: {
-        "Plantes Médicinales": { 
-          folder: "Botanique",
-          headers: ["Nom commun", "Nom scientifique", "Famille", "Photo", "Utilisation"],
-          recto: { "Nom commun": true, "Photo": true },
-          verso: { "Nom scientifique": true, "Famille": true, "Utilisation": true }
-        }
-      },
-      notions: {
-        "Plantes Médicinales": [
-          { 
-            "Nom commun": "Acore odorant", 
-            "Nom scientifique": "Acorus calamus", 
-            "Famille": "Araceae", 
-            "Photo": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80", 
-            "Utilisation": "Tonique amer et carminatif" 
-          }
-        ]
-      }
-    };
-
-    if (!store.folders) store.folders = ["Botanique", "Général"];
-    if (!store.coursesMeta) store.coursesMeta = {};
-
-    let currentIndex = 0;
-
-    /* ==========================================
-       2. DÉTECTION & CONFIGURATION DES IMAGES
-       ========================================== */
-    function isImageColumnOrUrl(headerName, cellValue) {
-      const h = headerName ? headerName.toString().toLowerCase() : '';
-      const val = cellValue ? cellValue.toString().trim().toLowerCase() : '';
-      
-      // Détection universelle basée sur les protocoles et extensions d'images
-      if (val.startsWith('http://') || val.startsWith('https://')) {
-        if (
-          val.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) || 
-          val.includes('unsplash.com') || 
-          val.includes('drive.google.com') || 
-          val.includes('imgur.com') || 
-          val.includes('wikimedia.org') ||
-          h.includes('photo') || h.includes('image') || h.includes('visuel') || h.includes('url') || h.includes('illustration')
-        ) {
-          return true;
-        }
-      }
-      
-      if (h.includes('photo') || h.includes('image') || h.includes('visuel') || h.includes('illustration')) {
-        return true;
-      }
-      
-      return false;
-    }
-
-    /* ==========================================
-       3. CONFIGURATION PAR COURS
-       ========================================== */
-    function getActiveConfig() {
-      const notion = store.currentNotion;
-      const currentList = store.notions[notion] || [];
-      
-      let headers = [];
-      if (store.coursesMeta[notion] && store.coursesMeta[notion].headers && store.coursesMeta[notion].headers.length > 0) {
-        headers = store.coursesMeta[notion].headers;
-      } else if (currentList.length > 0) {
-        headers = Object.keys(currentList[0]);
-      } else {
-        headers = ["Nom", "Description"];
-      }
-
-      if (!store.coursesMeta[notion]) {
-        store.coursesMeta[notion] = { folder: "Général", headers: headers, recto: {}, verso: {} };
-      }
-      
-      let cfg = store.coursesMeta[notion];
-      if (!cfg.headers) cfg.headers = headers;
-
-      if (!cfg.recto || Object.keys(cfg.recto).length === 0) {
-        cfg.recto = {};
-        cfg.verso = {};
-        headers.forEach((h, index) => {
-          if (index === 0 || isImageColumnOrUrl(h, "")) {
-            cfg.recto[h] = true;
-            cfg.verso[h] = false;
-          } else {
-            cfg.recto[h] = false;
-            cfg.verso[h] = true;
-          }
-        });
-      }
-
-      return cfg;
-    }
-
-    /* ==========================================
-       4. SAUVEGARDE ET MISE À JOUR DU STORAGE
-       ========================================== */
-    function saveStore() {
-      localStorage.setItem('learncraft_db', JSON.stringify(store));
-      updateSelectOptions();
-      renderCoursesList();
-      renderPreviewTable();
-      renderManualInputs();
-    }
-
-    function saveCurrentCourseConfig() {
-      const cfg = getActiveConfig();
-      cfg.recto = {};
-      cfg.verso = {};
-
-      cfg.headers.forEach(h => {
-        const rectoEl = document.getElementById(`chk-recto-${h}`);
-        const versoEl = document.getElementById(`chk-verso-${h}`);
-        if (rectoEl) cfg.recto[h] = rectoEl.checked;
-        if (versoEl) cfg.verso[h] = versoEl.checked;
-      });
-
-      saveStore();
-    }
-
-    function loadConfigCheckboxes() {
-      const cfg = getActiveConfig();
-      const courseTitleEl = document.getElementById('config-course-title');
-      if (courseTitleEl) courseTitleEl.innerText = store.currentNotion;
-
-      const rectoContainer = document.getElementById('recto-checkboxes');
-      const versoContainer = document.getElementById('verso-checkboxes');
-      if (!rectoContainer || !versoContainer) return;
-
-      rectoContainer.innerHTML = '';
-      versoContainer.innerHTML = '';
-
-      cfg.headers.forEach(h => {
-        const isRectoChecked = cfg.recto[h] !== undefined ? cfg.recto[h] : false;
-        const isVersoChecked = cfg.verso[h] !== undefined ? cfg.verso[h] : true;
-
-        rectoContainer.innerHTML += `
-          <label><input type="checkbox" id="chk-recto-${h}" ${isRectoChecked ? 'checked' : ''} onchange="saveCurrentCourseConfig()"> 📌 ${h}</label>
-        `;
-        versoContainer.innerHTML += `
-          <label><input type="checkbox" id="chk-verso-${h}" ${isVersoChecked ? 'checked' : ''} onchange="saveCurrentCourseConfig()"> 📌 ${h}</label>
-        `;
-      });
-    }
-
-    /* ==========================================
-       5. SAISIE & AJOUT MANUEL DE CARTE
-       ========================================== */
-    function renderManualInputs() {
-      const container = document.getElementById('manual-inputs-container');
-      if (!container) return;
-      container.innerHTML = '';
-      const cfg = getActiveConfig();
-
-      cfg.headers.forEach(h => {
-        container.innerHTML += `
-          <label style="font-size:12px; font-weight:600; color:#444;">${h} :</label>
-          <input type="text" id="manual-input-${h}" placeholder="Valeur pour ${h}..." style="margin-bottom:8px;">
-        `;
-      });
-    }
-
-    function addManualCard() {
-      const cfg = getActiveConfig();
-      let newCard = {};
-      let hasData = false;
-
-      cfg.headers.forEach(h => {
-        const el = document.getElementById(`manual-input-${h}`);
-        const val = el ? el.value.trim() : '';
-        newCard[h] = val;
-        if (val) hasData = true;
-      });
-
-      if (!hasData) {
-        alert("Veuillez remplir au moins un champ !");
-        return;
-      }
-
-      if (!store.notions[store.currentNotion]) {
-        store.notions[store.currentNotion] = [];
-      }
-
-      store.notions[store.currentNotion].push(newCard);
-      saveStore();
-      
-      cfg.headers.forEach(h => {
-        const el = document.getElementById(`manual-input-${h}`);
-        if (el) el.value = '';
-      });
-
-      alert("✨ Nouvelle carte ajoutée avec succès !");
-      renderFlashcard();
-    }
-
-    /* ==========================================
-       6. CONNEXION GOOGLE & IMPORT GOOGLE SHEET
-       ========================================== */
-   /* ==========================================
-       6. CONNEXION GOOGLE DRIVE PRIVÉ & PICKER
-       ========================================== */
-    // ⚠️ Remplace par ton Client ID Google Cloud Console
-    const GOOGLE_CLIENT_ID = "205291388940-8eerdjlort343tg61f7104eu2u1aiasr.apps.googleusercontent.com.apps.googleusercontent.com";
-    const SCOPES = "https://www.googleapis.com/auth/drive.readonly";
-
-    let tokenClient = null;
-    let accessToken = null;
-
-    // Initialisation des SDKs Google
-    window.onload = function() {
-      if (window.gapi) {
-        gapi.load('picker', () => console.log('Google Picker chargé.'));
-      }
-      
-      if (window.google) {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: GOOGLE_CLIENT_ID,
-          scope: SCOPES,
-          callback: (response) => {
-            if (response.error !== undefined) {
-              alert("Erreur d'authentification Google : " + response.error);
-              return;
-            }
-            accessToken = response.access_token;
-            document.getElementById('sync-info').innerText = "☁️ Google Drive Connecté (Mode Privé)";
-            document.getElementById('gdrive-actions').style.display = 'block';
-            document.getElementById('btn-gdrive-login').innerText = "✅ Connecté à Google";
-          },
-        });
-      }
-    };
-
-    function handleGoogleAuth() {
-      if (!tokenClient) {
-        alert("Les services Google sont encore en cours de chargement. Réessaie dans un instant.");
-        return;
-      }
-      // Demande d'autorisation d'accès aux fichiers Drive
-      tokenClient.requestAccessToken({ prompt: 'consent' });
-    }
-
-    function openGooglePicker() {
-      if (!accessToken) {
-        alert("Veuillez d'abord vous connecter à votre compte Google.");
-        return;
-      }
-
-      // Création de la vue filtrée pour les Google Sheets uniquement
-      const view = new google.picker.View(google.picker.ViewId.SPREADSHEETS);
-      
-      const picker = new google.picker.PickerBuilder()
-        .addView(view)
-        .setOAuthToken(accessToken)
-        .setCallback(pickerCallback)
-        .build();
-
-      picker.setVisible(true);
-    }
-
-    async function pickerCallback(data) {
-      if (data.action === google.picker.Action.PICKED) {
-        const doc = data.documents[0];
-        const fileId = doc.id;
-        const fileName = doc.name;
-
-        // Téléchargement sécurisé du fichier privé au format CSV via l'API Drive
-        try {
-          const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/csv`, {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`
-            }
-          });
-
-          if (!response.ok) throw new Error("Impossible d'exporter le fichier Google Sheet.");
-
-          const csvText = await response.text();
-          processCSVImport(csvText, fileName);
-        } catch (error) {
-          alert("⚠️ Erreur lors du chargement du fichier privé : " + error.message);
-        }
-      }
-    }
-
-    function saveApiKey() {
-      const keyInput = document.getElementById('api-key-input');
-      if (keyInput) {
-        store.apiKey = keyInput.value.trim();
-        saveStore();
-        alert("🔑 Clé API Groq enregistrée !");
-      }
-    }
-
-    /* ==========================================
-       7. GESTION DES DOSSIERS & ARBORESCENCE
-       ========================================== */
-    function createNewFolder() {
-      const folderInput = document.getElementById('new-folder-input');
-      if (!folderInput) return;
-      const name = folderInput.value.trim();
-      
-      if (!name) return alert("Veuillez entrer un nom de dossier !");
-      
-      if (!store.folders.includes(name)) {
-        store.folders.push(name);
-        folderInput.value = '';
-        saveStore();
-        alert(`Dossier '${name}' créé !`);
-      } else {
-        alert("Ce dossier existe déjà.");
-      }
-    }
-
-    function updateSelectOptions() {
-      const select = document.getElementById('notion-select');
-      const folderImportSelect = document.getElementById('import-folder-select');
-      if (!select || !folderImportSelect) return;
-      
-      select.innerHTML = '';
-      folderImportSelect.innerHTML = '';
-
-      store.folders.forEach(f => {
-        const opt = document.createElement('option');
-        opt.value = f;
-        opt.innerText = f;
-        folderImportSelect.appendChild(opt);
-      });
-
-      const grouped = {};
-      store.folders.forEach(f => grouped[f] = []);
-      grouped["Général"] = grouped["Général"] || [];
-
-      Object.keys(store.notions).forEach(key => {
-        const folderName = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
-        if (!grouped[folderName]) grouped[folderName] = [];
-        grouped[folderName].push(key);
-      });
-
-      Object.keys(grouped).forEach(folder => {
-        if (grouped[folder].length > 0) {
-          const optgroup = document.createElement('optgroup');
-          optgroup.label = `📁 ${folder}`;
-          grouped[folder].forEach(key => {
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.innerText = `${key} (${store.notions[key].length} cartes)`;
-            if (key === store.currentNotion) opt.selected = true;
-            optgroup.appendChild(opt);
-          });
-          select.appendChild(optgroup);
-        }
-      });
-
-      if (store.apiKey) {
-        const apiKeyInput = document.getElementById('api-key-input');
-        if (apiKeyInput) apiKeyInput.value = store.apiKey;
-      }
-    }
-
-    function moveCourseToFolder(courseKey, newFolder) {
-      if (!store.coursesMeta[courseKey]) store.coursesMeta[courseKey] = {};
-      store.coursesMeta[courseKey].folder = newFolder;
-      saveStore();
-    }
-
-    function renderCoursesList() {
-      const container = document.getElementById('courses-list');
-      if (!container) return;
-      container.innerHTML = '';
-      
-      store.folders.forEach(folder => {
-        const folderBox = document.createElement('div');
-        folderBox.className = 'folder-group-box';
-        folderBox.innerHTML = `<h4 style="margin:0 0 10px 0; color:var(--primary);">📁 ${folder}</h4>`;
-
-        const keys = Object.keys(store.notions).filter(key => {
-          const f = (store.coursesMeta[key] && store.coursesMeta[key].folder) ? store.coursesMeta[key].folder : "Général";
-          return f === folder;
-        });
-
-        if (keys.length === 0) {
-          folderBox.innerHTML += `<p style="font-size:12px; color:#888; margin:0;">Aucun cours dans ce dossier.</p>`;
-        } else {
-          keys.forEach(key => {
-            let folderOptions = store.folders.map(f => 
-              `<option value="${f}" ${f === folder ? 'selected' : ''}>${f}</option>`
-            ).join('');
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'course-item';
-            itemDiv.innerHTML = `
-              <div style="flex:1;">
-                <strong>${key}</strong> <span style="font-size:11px; color:#666;">(${store.notions[key].length} cartes)</span>
-              </div>
-              <div class="flex-row">
-                <span style="font-size:11px;">Dossier:</span>
-                <select onchange="moveCourseToFolder('${key}', this.value)" style="margin:0; padding:4px 6px; font-size:11px; width:auto;">
-                  ${folderOptions}
-                </select>
-                <button onclick="deleteCourse('${key}')" class="btn-danger" style="padding:5px 8px; font-size:11px;">🗑️</button>
-              </div>
-            `;
-            folderBox.appendChild(itemDiv);
-          });
-        }
-        container.appendChild(folderBox);
-      });
-    }
-
-    /* ==========================================
-       8. APERÇU ET SUPPRESSION DES CARTES
-       ========================================== */
-    function renderPreviewTable() {
-      const thead = document.getElementById('preview-table-head');
-      const tbody = document.getElementById('preview-table-body');
-      if (!thead || !tbody) return;
-      
-      thead.innerHTML = '';
-      tbody.innerHTML = '';
-
-      const cfg = getActiveConfig();
-      const list = getCurrentList();
-
-      let headHtml = '';
-      cfg.headers.forEach(h => {
-        headHtml += `<th>${h}</th>`;
-      });
-      headHtml += `<th>Action</th>`;
-      thead.innerHTML = headHtml;
-
-      if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${cfg.headers.length + 1}" style="text-align:center; color:#888;">Aucune carte enregistrée pour ce cours</td></tr>`;
-        return;
-      }
-
-      list.forEach((item, idx) => {
-        let trHtml = '';
-        cfg.headers.forEach(h => {
-          let val = item[h] !== undefined ? item[h] : '-';
-          trHtml += `<td>${val}</td>`;
-        });
-        trHtml += `<td><button onclick="deleteSingleCard(${idx})" class="btn-danger" style="padding:3px 6px; font-size:10px;">❌</button></td>`;
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = trHtml;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function deleteSingleCard(index) {
-      const list = getCurrentList();
-      list.splice(index, 1);
-      saveStore();
-      renderFlashcard();
-    }
-
-    function deleteCourse(key) {
-      if (confirm(`Voulez-vous vraiment supprimer le cours "${key}" ?`)) {
-        delete store.notions[key];
-        delete store.coursesMeta[key];
-        const remaining = Object.keys(store.notions);
-        if (remaining.length > 0) {
-          store.currentNotion = remaining[0];
-        } else {
-          store.notions["Nouveau cours"] = [];
-          store.currentNotion = "Nouveau cours";
-        }
-        saveStore();
-        renderFlashcard();
-      }
-    }
-
-    function changeNotion() {
-      const select = document.getElementById('notion-select');
-      if (select) {
-        store.currentNotion = select.value;
-        currentIndex = 0;
-        saveStore();
-        renderFlashcard();
-      }
-    }
-
-    function getCurrentList() {
-      return store.notions[store.currentNotion] || [];
-    }
-
-    /* ==========================================
-       9. AFFICHAGE DES CARTE (FLASHCARD)
-       ========================================== */
-    function renderFlashcard() {
-      const list = getCurrentList();
-      const cfg = getActiveConfig();
-      const rectoContainer = document.getElementById('recto-container');
-      const versoList = document.getElementById('verso-content-list');
-      const counterBadge = document.getElementById('card-counter');
-      
-      if (!rectoContainer) return;
-      rectoContainer.innerHTML = '';
-      versoList.innerHTML = '';
-
-      if (list.length === 0) {
-        counterBadge.innerText = `📊 0 / 0 cartes`;
-        rectoContainer.innerHTML = '<h3 style="color:#888;">📭 Ce cours ne contient aucune carte. Importez un tableau pour commencer !</h3>';
-        return;
-      }
-
-      if (currentIndex >= list.length) currentIndex = 0;
-      counterBadge.innerText = `📊 Carte ${currentIndex + 1} / ${list.length}`;
-
-      const p = list[currentIndex];
-      let versoHTML = '';
-
-      cfg.headers.forEach(h => {
-        let val = p[h] || '';
-        if (!val) return;
-
-        const isImg = isImageColumnOrUrl(h, val);
-
-        if (cfg.recto && cfg.recto[h]) {
-          if (isImg) {
-            rectoContainer.innerHTML += `<img src="${val}" class="plant-img" onerror="this.style.display='none'">`;
-          } else {
-            rectoContainer.innerHTML += `<div style="margin: 10px 0; font-size: 18px; font-weight: 600; color: var(--primary);">📌 ${h} : ${val}</div>`;
-          }
-        }
-
-        if (cfg.verso && cfg.verso[h]) {
-          if (isImg) {
-            versoHTML += `<p><strong>📷 ${h} :</strong><br><img src="${val}" class="plant-img" style="max-height:180px; margin-top:8px;" onerror="this.style.display='none'"></p>`;
-          } else {
-            versoHTML += `<p><strong>💡 ${h} :</strong> ${val}</p>`;
-          }
-        }
-      });
-
-      if (!rectoContainer.innerHTML) {
-        rectoContainer.innerHTML = `<p style="color:#e65100;">⚠️ Aucun élément n'est configuré pour le Recto. Allez dans l'onglet <b>🎛️ Config Recto / Verso</b>.</p>`;
-      }
-
-      versoList.innerHTML = versoHTML || `<p style="color:#888;">Aucun élément configuré pour le Verso.</p>`;
-      
-      const detailsEl = document.getElementById('fc-details');
-      const mnemonicEl = document.getElementById('fc-mnemonic');
-      if (detailsEl) detailsEl.style.display = 'none';
-      if (mnemonicEl) mnemonicEl.style.display = 'none';
-    }
-
-    function toggleDetails() {
-      const d = document.getElementById('fc-details');
-      if (d) {
-        d.style.display = (d.style.display === 'block') ? 'none' : 'block';
-      }
-    }
-
-    function nextCard() {
-      const list = getCurrentList();
-      if (list.length === 0) return;
-      currentIndex = (currentIndex + 1) % list.length;
-      renderFlashcard();
-    }
-
-    function prevCard() {
-      const list = getCurrentList();
-      if (list.length === 0) return;
-      currentIndex = (currentIndex - 1 + list.length) % list.length;
-      renderFlashcard();
-    }
-
-    /* ==========================================
-       10. PARSER CSV & TRAITEMENT
-       ========================================== */
-    function parseCSVMatrix(text) {
-      let p = '', c = '', r = [];
-      let q = false;
-      let row = [''];
-      for (let l = 0; l < text.length; l++) {
-        c = text[l];
-        p = l > 0 ? text[l - 1] : '';
-        if (c === '"') {
-          if (q && text[l + 1] === '"') { row[row.length - 1] += '"'; l++; }
-          else { q = !q; }
-        } else if (c === ',' && !q) {
-          row.push('');
-        } else if ((c === '\r' || c === '\n') && !q) {
-          if (c === '\r' && text[l + 1] === '\n') { l++; }
-          r.push(row);
-          row = [''];
-        } else {
-          row[row.length - 1] += c;
-        }
-      }
-      if (row.length > 1 || row[0] !== '') { r.push(row); }
-      return r;
-    }
-
-    function parseCustomCSV(csvText) {
-      const rows = parseCSVMatrix(csvText);
-      if (rows.length < 2) return { headers: [], data: [] };
-
-      const headers = rows[0].map(h => h.trim());
-      let data = [];
-
-      for (let i = 1; i < rows.length; i++) {
-        const cols = rows[i];
-        if (cols.length >= 1 && cols[0].trim() !== '') {
-          let item = {};
-          headers.forEach((h, index) => {
-            item[h] = cols[index] !== undefined ? cols[index].trim() : '';
-          });
-          data.push(item);
-        }
-      }
-      return { headers, data };
-    }
-
-    function processCSVImport(text, defaultName) {
-      const parsed = parseCustomCSV(text);
-      if (parsed.data.length > 0) {
-        const courseName = defaultName || "Nouveau Cours";
-        const folderSelect = document.getElementById('import-folder-select');
-        const folder = folderSelect ? folderSelect.value : "Général";
-        
-        store.notions[courseName] = parsed.data;
-        
-        let rectoConfig = {};
-        let versoConfig = {};
-        parsed.headers.forEach((h, idx) => {
-          if (idx === 0 || isImageColumnOrUrl(h, "")) {
-            rectoConfig[h] = true;
-            versoConfig[h] = false;
-          } else {
-            rectoConfig[h] = false;
-            versoConfig[h] = true;
-          }
-        });
-
-        store.coursesMeta[courseName] = {
-          folder: folder,
-          headers: parsed.headers,
-          recto: rectoConfig,
-          verso: versoConfig
-        };
-
-        store.currentNotion = courseName;
-        currentIndex = 0;
-        saveStore();
-        alert(`✨ Cours "${courseName}" (${parsed.data.length} cartes) importé avec succès !`);
-        switchView('flashcard');
-      } else {
-        alert("Erreur : Impossible de lire ce fichier CSV.");
-      }
-    }
-
-    function importLocalCSV(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        processCSVImport(e.target.result, file.name.replace(/\.[^/.]+$/, ""));
-      };
-      reader.readAsText(file);
-    }
-
-    /* ==========================================
-       11. NAVIGATION ENTRE LES VUES
-       ========================================== */
-    function switchView(viewName) {
-      document.getElementById('view-flashcard').style.display = 'none';
-      document.getElementById('view-qcm').style.display = 'none';
-      document.getElementById('view-manager').style.display = 'none';
-      document.getElementById('view-config-volets').style.display = 'none';
-      document.getElementById('view-ai-assistant').style.display = 'none';
-
-      if (viewName === 'flashcard') {
-        document.getElementById('view-flashcard').style.display = 'block';
-        renderFlashcard();
-      } else if (viewName === 'qcm') {
-        document.getElementById('view-qcm').style.display = 'block';
-        renderQCM();
-      } else if (viewName === 'manager') {
-        document.getElementById('view-manager').style.display = 'block';
-        renderCoursesList();
-        renderPreviewTable();
-        renderManualInputs();
-      } else if (viewName === 'config-volets') {
-        document.getElementById('view-config-volets').style.display = 'block';
-        loadConfigCheckboxes();
-      } else if (viewName === 'ai-assistant') {
-        document.getElementById('view-ai-assistant').style.display = 'block';
-      }
-    }
-
-    /* ==========================================
-       12. MODE QCM
-       ========================================== */
-    function renderQCM() {
-      const list = getCurrentList();
-      const cfg = getActiveConfig();
-      const feedback = document.getElementById('qcm-feedback');
-      const nextBtn = document.getElementById('qcm-next-btn');
-      if (feedback) feedback.innerText = '';
-      if (nextBtn) nextBtn.style.display = 'none';
-
-      if (list.length < 2) {
-        document.getElementById('qcm-question').innerText = "⚠️ Il faut au moins 2 cartes enregistrées dans ce cours pour lancer le mode QCM.";
-        document.getElementById('qcm-options').innerHTML = '';
-        return;
-      }
-
-      let qcmCurrentCard = list[Math.floor(Math.random() * list.length)];
-      const primaryHeader = cfg.headers[0] || 'Nom';
-      const secondaryHeader = cfg.headers.find(h => !isImageColumnOrUrl(h, "")) || primaryHeader;
-      
-      document.getElementById('qcm-question').innerText = `🎯 À quel élément correspond : "${qcmCurrentCard[primaryHeader]}" ?`;
-      
-      let options = [qcmCurrentCard];
-      while (options.length < 3 && options.length < list.length) {
-        let randCard = list[Math.floor(Math.random() * list.length)];
-        if (!options.includes(randCard)) options.push(randCard);
-      }
-      options.sort(() => Math.random() - 0.5);
-
-      const optionsContainer = document.getElementById('qcm-options');
-      optionsContainer.innerHTML = '';
-      
-      options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'qcm-btn';
-        btn.innerText = opt[secondaryHeader] || opt[primaryHeader];
-        btn.onclick = () => checkQCMAnswer(opt, qcmCurrentCard, btn);
-        optionsContainer.appendChild(btn);
-      });
-    }
-
-    function checkQCMAnswer(selected, correct, btn) {
-      const feedback = document.getElementById('qcm-feedback');
-      const nextBtn = document.getElementById('qcm-next-btn');
-      if (selected === correct) {
-        feedback.style.color = 'var(--primary)';
-        feedback.innerText = "✅ Bonne réponse ! Bravo 🎉";
-        btn.style.background = "#e8f5e9";
-        btn.style.borderColor = "var(--primary)";
-        if (nextBtn) nextBtn.style.display = 'block';
-      } else {
-        feedback.style.color = 'var(--danger)';
-        feedback.innerText = "❌ Oups, ce n'est pas la bonne réponse. Essaie encore !";
-        btn.style.background = "#ffebee";
-        btn.style.borderColor = "var(--danger)";
-      }
-    }
-
-    /* ==========================================
-       13. FONCTIONNALITÉS IA (GROQ)
-       ========================================== */
-    async function generateMnemonic() {
-      const list = getCurrentList();
-      if (list.length === 0) return;
-      const p = list[currentIndex];
-      const mnemonicBox = document.getElementById('fc-mnemonic');
-      
-      if (!store.apiKey) {
-        alert("Veuillez renseigner votre clé API Groq dans l'onglet Réglages ⚙️ pour activer l'IA !");
-        return;
-      }
-
-      mnemonicBox.style.display = 'block';
-      mnemonicBox.innerText = "✨ Génération du moyen mnémotechnique par l'IA en cours...";
-
-      try {
-        const promptText = `Crée un moyen mnémotechnique court, original et facile à retenir pour mémoriser ces données : ${JSON.stringify(p)}`;
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: promptText }]
-          })
-        });
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-          mnemonicBox.innerText = "💡 " + data.choices[0].message.content;
-        } else {
-          mnemonicBox.innerText = "⚠️ Erreur lors de la génération par l'IA.";
-        }
-      } catch (e) {
-        mnemonicBox.innerText = "⚠️ Erreur de connexion avec l'API Groq.";
-      }
-    }
-
-    async function generateAICourse() {
-      const promptInput = document.getElementById('ai-course-prompt').value.trim();
-      const statusDiv = document.getElementById('ai-status');
-
-      if (!promptInput) return alert("Veuillez saisir un thème ou coller votre texte de cours.");
-      if (!store.apiKey) return alert("Veuillez d'abord enregistrer votre clé API Groq dans l'onglet Réglages !");
-
-      statusDiv.style.display = 'block';
-
-      try {
-        const promptText = `À partir du texte suivant, génère un tableau au format CSV strict avec des en-têtes explicites (ex: Nom, Description, Propriétés). N'ajoute AUCUN texte supplémentaire, uniquement le CSV brut:\n\n${promptInput}`;
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: promptText }]
-          })
-        });
-        const data = await response.json();
-        statusDiv.style.display = 'none';
-
-        if (data.choices && data.choices[0]) {
-          const csvContent = data.choices[0].message.content.trim();
-          processCSVImport(csvContent, "Cours_IA_" + new Date().toLocaleDateString('fr-FR'));
-        } else {
-          alert("Erreur lors de la génération par l'IA.");
-        }
-      } catch (e) {
-        statusDiv.style.display = 'none';
-        alert("⚠️ Erreur de connexion avec l'API Groq.");
-      }
-    }
-
-    async function sendChatMessage() {
-      const chatInput = document.getElementById('chat-input');
-      const chatBox = document.getElementById('chat-box');
-      if (!chatInput || !chatBox) return;
-
-      const msg = chatInput.value.trim();
-      if (!msg) return;
-      if (!store.apiKey) return alert("Veuillez d'abord enregistrer votre clé API Groq dans l'onglet Réglages !");
-
-      chatBox.innerHTML += `<div class="chat-msg"><span class="chat-user">👤 Vous :</span> ${msg}</div>`;
-      chatInput.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      const currentList = getCurrentList();
-      const contextText = `Contexte du cours actuel (${store.currentNotion}): ${JSON.stringify(currentList.slice(0, 5))}`;
-
-      try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${store.apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-              { role: "system", content: `Tu es un tuteur pédagogique bienveillant. Réponds en t'appuyant sur ce contexte : ${contextText}` },
-              { role: "user", content: msg }
-            ]
-          })
-        });
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-          chatBox.innerHTML += `<div class="chat-msg"><span class="chat-ai">🤖 Assistant :</span> ${data.choices[0].message.content}</div>`;
-        } else {
-          chatBox.innerHTML += `<div class="chat-msg" style="color:red;">⚠️ L'IA n'a pas pu répondre.</div>`;
-        }
-        chatBox.scrollTop = chatBox.scrollHeight;
-      } catch (e) {
-        chatBox.innerHTML += `<div class="chat-msg" style="color:red;">⚠️ Erreur de connexion avec l'API Groq.</div>`;
-      }
-    }
-
-    /* ==========================================
-       14. INITIALISATION AU CHARGEMENT DE LA PAGE
-       ========================================== */
-    updateSelectOptions();
-    renderFlashcard();
-  </script>
-</body>
-</html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LearnCraft TDAH</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<style>
+:root{--p:#2e7d32;--pl:#e8f5e9;--ai:#7b1fa2;--dr:#1565c0;--w:#f57c00;--d:#d32f2f;--bg:#f4f6f8;--t:#333;--b:#e0e0e0}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t);margin:0;padding:12px 12px 90px;display:flex;flex-direction:column;align-items:center}
+main{width:100%;max-width:720px}
+h1{color:var(--p);margin:4px 0;font-size:26px;text-align:center}
+h3{margin:0 0 10px;font-size:17px}
+p{line-height:1.5;margin:0 0 10px}.mu{color:#888;font-size:13px}
+button{background:var(--p);color:#fff;border:0;padding:11px 16px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 5px #0002;transition:transform .1s}
+button:hover{filter:brightness(.92)}button:active{transform:scale(.96)}
+button.ai{background:var(--ai)}button.dr{background:var(--dr)}button.w{background:var(--w)}button.d{background:var(--d)}button.g{background:#78909c}
+button.big{width:100%;padding:15px;font-size:16px;border-radius:14px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #1565c055}
+.box,.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;border:1px solid var(--b)}
+.card{text-align:center;min-height:200px;padding:22px;box-shadow:0 8px 25px #0001}
+.fl{animation:fl .4s}@keyframes fl{50%{transform:rotateY(90deg)}}
+input[type=text],input[type=password],select,textarea{width:100%;padding:10px;margin:4px 0 10px;border:1px solid #ccc;border-radius:8px;font:inherit;font-size:14px;background:#fff}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+.im{max-width:100%;max-height:280px;object-fit:contain;border-radius:12px;margin:8px 0}
+.ln{margin:8px 0;font-size:17px;white-space:pre-line;text-align:left}.ln b{display:block;font-size:12px;color:var(--p)}
+#face.rc .ln{font-size:22px;font-weight:600;text-align:center}
+.bar{height:10px;background:#dde3e8;border-radius:6px;margin-bottom:12px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#81c784,#2e7d32);transition:width .4s}
+.stats{text-align:center;margin:4px 0 10px;font-weight:700;color:var(--w);font-size:14px}
+.mn{background:#f3e5f5;border-left:4px solid var(--ai);padding:12px;border-radius:8px;margin-top:10px;text-align:left;display:none;white-space:pre-line;color:#4a148c;font-size:14px}
+.opt{display:block;width:100%;text-align:left;background:#f8f9fa;color:var(--t);border:1px solid #ccd0d5;margin-top:10px;font-weight:500;font-size:15px;box-shadow:none}
+.opt.ok{background:#c8e6c9;border-color:var(--p)}.opt.ko{background:#ffcdd2;border-color:var(--d)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 label{display:block;background:#fafafa;padding:8px;border-radius:8px;margin-top:6px;font-size:13px}
+.ci{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid var(--b);border-radius:8px;margin-top:6px;font-size:13px}
+.ci select{width:auto;margin:0;padding:4px}.ci button{padding:5px 9px;font-size:12px}
+.ts{max-height:260px;overflow:auto;border:1px solid var(--b);border-radius:8px}
+table{border-collapse:collapse;min-width:520px;width:100%;font-size:12px}th,td{border:1px solid var(--b);padding:6px;text-align:left;vertical-align:top;white-space:pre-line}th{background:#f5f5f5;position:sticky;top:0}
+.chat{background:#fafafa;border:1px solid var(--b);border-radius:12px;padding:10px;max-height:240px;overflow:auto;margin-bottom:10px;font-size:14px}.chat div{margin:6px 0;white-space:pre-wrap}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:center;gap:4px;padding:8px;border-top:1px solid var(--b);z-index:5}
+nav button{background:none;color:#666;box-shadow:none;flex:1;max-width:170px;flex-direction:column;font-size:12px;padding:8px}
+nav button.on{background:var(--pl);color:var(--p)}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9;max-width:90%;text-align:center}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:8}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.fl{animation:none}}
+</style></head><body>
+<canvas id="cf"></canvas><div id="toast"></div>
+<main>
+<h1>🌿 LearnCraft</h1>
+<div class="stats" id="stats"></div>
+<div class="box row" style="padding:10px"><select id="sel" onchange="changeCourse()" style="margin:0;flex:3" aria-label="Cours actif"></select><span id="cnt" class="mu" style="text-align:center"></span></div>
+
+<section id="v-study"><div class="bar"><i id="prog"></i></div>
+ <div class="card" id="card"><div id="face"></div></div>
+ <div id="ctl">
+  <button id="bflip" class="w big" onclick="flip()">👀 Retourner la carte</button>
+  <div id="rate" class="row" style="display:none"><button class="d big" onclick="rate(0)">❌ À revoir</button><button class="big" onclick="rate(1)">✅ Je savais</button></div>
+  <div id="mnw" style="display:none;margin-top:10px"><button class="ai" style="width:100%" onclick="mnemo()">💡 Moyen mnémotechnique IA</button><div id="mn" class="mn"></div></div>
+ </div></section>
+
+<section id="v-qcm" style="display:none"><div class="card"><div id="qhead" class="mu"></div><div id="qface" class="rc"></div><h3 id="qask" style="color:var(--p)"></h3><div id="qopts"></div><div id="qfb" style="font-weight:700;margin-top:12px"></div><button id="qnext" class="big" style="display:none;margin-top:10px" onclick="qcmNext()">Question suivante ➡️</button></div></section>
+
+<section id="v-courses" style="display:none">
+ <div class="box" id="cfgwrap" style="border-left:5px solid var(--w)"><h3 style="color:var(--w)">🎛️ Recto / Verso : <span id="cfg-title"></span></h3>
+  <p class="mu">Choisis ce qui s'affiche sur chaque face (utilisé aussi par le QCM : question = recto, réponse = 1er champ texte du verso).</p>
+  <div class="grid2"><div><b>📤 Recto</b><div id="cfg-recto"></div></div><div><b>📥 Verso</b><div id="cfg-verso"></div></div></div></div>
+
+ <div class="box" style="border-left:5px solid var(--p)"><h3 style="color:var(--p)">📁 Importer un tableau</h3>
+  <label>Dossier de destination</label><select id="imp-folder"></select>
+  <input type="file" id="csvf" accept=".csv,.tsv,.txt" onchange="importFile(event)">
+  <label>Lien d'un Google Sheet public</label><input type="text" id="gurl" placeholder="https://docs.google.com/spreadsheets/d/...">
+  <button class="dr" style="width:100%" onclick="importUrl()">📥 Importer depuis le lien</button></div>
+
+ <div class="box" style="border-left:5px solid var(--dr)"><h3 style="color:var(--dr)">☁️ Google Drive (privé)</h3>
+  <p class="mu">Il faut un Client ID OAuth (type « Application Web ») et une clé API Google Cloud. Le fichier doit être servi en http(s) (pas file://), et son adresse ajoutée aux « origines JavaScript autorisées ».</p>
+  <input type="text" id="gid" placeholder="Client ID (xxx.apps.googleusercontent.com)"><input type="text" id="gkey" placeholder="Clé API Google (pour le Picker)">
+  <button class="dr" style="width:100%" onclick="gAuth()">👤 Se connecter à Google</button>
+  <button id="gpick" class="g" style="width:100%;margin-top:8px;display:none" onclick="gPick()">📂 Choisir un Google Sheet</button></div>
+
+ <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">✍️ Ajouter une carte au cours actif</h3><div id="man"></div><button class="ai" style="width:100%" onclick="addCard()">➕ Ajouter</button></div>
+
+ <div class="box" style="border-left:5px solid var(--d)"><h3 style="color:var(--d)">📂 Dossiers & cours</h3>
+  <div class="row"><input type="text" id="nf" placeholder="Nom du nouveau dossier" style="margin:0"><button onclick="newFolder()" style="flex:0 0 auto">➕ Créer</button></div>
+  <div id="clist"></div></div>
+
+ <div class="box"><h3>📋 Aperçu du cours actif</h3><div class="ts"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div></div>
+ <div class="box"><label><input type="checkbox" id="snd" onchange="st.cfg.sound=this.checked;save()"> 🔊 Sons de récompense</label></div>
+</section>
+
+<section id="v-ai" style="display:none">
+ <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">🔑 Clé API Groq</h3><p class="mu">Clé gratuite (gsk_...), stockée uniquement dans ce navigateur.</p><input type="password" id="gk" placeholder="gsk_..." onchange="st.cfg.key=this.value.trim();save();toast('🔑 Clé enregistrée')"></div>
+ <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">✨ Générer un cours</h3><textarea id="aip" rows="4" placeholder="Ex : 8 fiches sur le système cardiovasculaire (nom, fonction, anatomie)…"></textarea><button class="ai" style="width:100%" onclick="aiCourse()">🤖 Générer les fiches</button></div>
+ <div class="box" style="border-left:5px solid var(--ai)"><h3 style="color:var(--ai)">💬 Question sur le cours actif</h3><div id="chat" class="chat"><div>🤖 Pose-moi une question sur tes fiches !</div></div><div class="row"><input type="text" id="ci" placeholder="Ta question…" style="margin:0" onkeydown="if(event.key==='Enter')chat()"><button class="ai" style="flex:0 0 auto" onclick="chat()">Envoyer</button></div></div>
+</section>
+</main>
+<nav><button id="n-study" onclick="show('study')">🎴<span>Réviser</span></button><button id="n-qcm" onclick="show('qcm')">❓<span>QCM</span></button><button id="n-courses" onclick="show('courses')">📚<span>Cours</span></button><button id="n-ai" onclick="show('ai')">🤖<span>IA</span></button></nav>
+
+<script>
+const $=i=>document.getElementById(i),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ---------- Données ---------- */
+let st=load(),V='study',S={},Q={},tok=null;
+function load(){let s=null;try{s=JSON.parse(localStorage.getItem('lc2')||localStorage.getItem('learncraft_db'))}catch(e){}
+ s=s||{};s.cur=s.cur||s.currentNotion;s.meta=s.meta||s.coursesMeta||{};s.notions=s.notions||{};s.folders=s.folders||["Botanique","Général"];
+ s.cfg=s.cfg||{key:s.apiKey||'',gid:'',gkey:'',sound:false};s.pts=s.pts||0;s.streak=s.streak||0;s.last=s.last||'';
+ if(!Object.keys(s.notions).length){s.notions["Plantes médicinales"]=[{"Nom commun":"Acore odorant","Nom scientifique":"Acorus calamus","Famille":"Araceae","Photo":"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80","Utilisation":"Tonique amer et carminatif"},{"Nom commun":"Camomille","Nom scientifique":"Matricaria chamomilla","Famille":"Asteraceae","Photo":"","Utilisation":"Digestive et calmante"},{"Nom commun":"Menthe poivrée","Nom scientifique":"Mentha × piperita","Famille":"Lamiaceae","Photo":"","Utilisation":"Digestive, antispasmodique"}];s.meta["Plantes médicinales"]={folder:"Botanique"}}
+ if(!s.notions[s.cur])s.cur=Object.keys(s.notions)[0];return s}
+function save(){try{localStorage.setItem('lc2',JSON.stringify(st))}catch(e){toast('⚠️ Sauvegarde impossible (stockage plein ?)')}}
+const list=()=>st.notions[st.cur]||[];
+function conf(){const m=st.meta[st.cur]||(st.meta[st.cur]={folder:'Général'});
+ if(!m.headers||!m.headers.length)m.headers=list()[0]?Object.keys(list()[0]).filter(k=>k[0]!=='_'):['Nom','Description'];
+ if(!m.recto||!Object.keys(m.recto).length){m.recto={};m.verso={};m.headers.forEach((h,i)=>{const r=i===0||/photo|image|visuel|illustration/i.test(h);m.recto[h]=r;m.verso[h]=!r})}
+ return m}
+function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2600)}
+/* ---------- Images ---------- */
+function isImg(h,v){v=String(v||'').trim();if(!/^https?:\/\//i.test(v))return false;return /photo|image|visuel|illustration/i.test(h)||/\.(jpe?g|gif|png|webp|svg)(\?|$)/i.test(v)||/unsplash\.com|imgur\.com|wikimedia\.org|drive\.google\.com|googleusercontent/i.test(v)}
+function imgSrc(v){const m=v.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?[^ ]*?id=)([\w-]+)/);return m?`https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`:v}
+function face(c,side){const m=conf();let h='';m.headers.forEach(k=>{const v=c[k];if(!v||!m[side][k])return;
+ h+=isImg(k,v)?`<img class="im" src="${esc(imgSrc(v))}" alt="" onerror="this.style.display='none'">`:`<div class="ln"><b>${esc(k)}</b>${esc(v)}</div>`});
+ return h||'<p class="mu">Rien n\'est configuré pour cette face (onglet 📚 Cours → Recto / Verso).</p>'}
+/* ---------- Points, série, effets ---------- */
+function addPts(n){const t=new Date().toDateString();if(st.last!==t){const y=new Date(Date.now()-864e5).toDateString();st.streak=st.last===y?st.streak+1:1;st.last=t}st.pts+=n;save();stats()}
+function stats(){$('stats').textContent=`🔥 ${st.streak} jour${st.streak>1?'s':''} · ⭐ ${st.pts} pts · Niveau ${Math.floor(st.pts/100)+1}`}
+function beep(f){if(!st.cfg.sound)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.12)}catch(e){}}
+function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const c=$('cf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+ const P=Array.from({length:100},()=>({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,c:`hsl(${Math.random()*360},80%,60%)`,s:5+Math.random()*5}));let f=0;
+ (function a(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;x.fillStyle=p.c;x.fillRect(p.x,p.y,p.s,p.s)});if(++f<100)requestAnimationFrame(a);else x.clearRect(0,0,c.width,c.height)})()}
+/* ---------- Navigation ---------- */
+function show(v){V=v;['study','qcm','courses','ai'].forEach(x=>{$('v-'+x).style.display=x===v?'block':'none';$('n-'+x).classList.toggle('on',x===v)});
+ if(v==='study')startStudy();if(v==='qcm')qcmStart();if(v==='courses')renderCourses();if(v==='ai')$('gk').value=st.cfg.key||''}
+function renderSel(){const s=$('sel');s.innerHTML='';const g={};Object.keys(st.notions).forEach(k=>{const f=(st.meta[k]||{}).folder||'Général';(g[f]=g[f]||[]).push(k)});
+ Object.keys(g).forEach(f=>{const og=document.createElement('optgroup');og.label='📁 '+f;g[f].forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${k} (${st.notions[k].length})`;o.selected=k===st.cur;og.appendChild(o)});s.appendChild(og)})}
+function changeCourse(){st.cur=$('sel').value;save();show(V)}
+/* ---------- Révision (boîtes de Leitner, sessions de 10) ---------- */
+function startStudy(){S={q:list().map(c=>[c,(c._b||1)+Math.random()*1.5]).sort((a,b)=>a[1]-b[1]).slice(0,10).map(x=>x[0]),i:0,ok:0,re:new Set(),f:false};drawStudy()}
+function drawStudy(){const fc=$('face'),ctl=$('ctl');$('mn').style.display='none';
+ if(!list().length){fc.className='';fc.innerHTML='<p class="mu">📭 Aucune carte. Va dans 📚 Cours pour importer un tableau.</p>';ctl.style.display='none';$('prog').style.width=0;$('cnt').textContent='';return}
+ if(S.i>=S.q.length){ctl.style.display='none';$('prog').style.width='100%';$('cnt').textContent='Session terminée';fc.className='';
+  fc.innerHTML=`<h2>🎉 Bravo !</h2><p>${S.ok} / ${S.q.length} cartes sues du premier coup.</p><button class="big" onclick="startStudy()">🔁 Nouvelle session</button>`;if(S.ok)confetti();beep(880);return}
+ ctl.style.display='block';const c=S.q[S.i];$('prog').style.width=(S.i/S.q.length*100)+'%';$('cnt').textContent=`Carte ${S.i+1}/${S.q.length} · boîte ${c._b||1}/5`;
+ fc.className=S.f?'':'rc';fc.innerHTML=face(c,S.f?'verso':'recto');$('bflip').style.display=S.f?'none':'block';$('rate').style.display=S.f?'flex':'none';$('mnw').style.display=S.f?'block':'none'}
+function flip(){if(S.i>=S.q.length)return;S.f=true;const k=$('card');k.classList.remove('fl');void k.offsetWidth;k.classList.add('fl');setTimeout(drawStudy,200)}
+function rate(ok){const c=S.q[S.i];if(ok){c._b=Math.min(5,(c._b||1)+1);if(!S.re.has(c))S.ok++;addPts(10);beep(660)}else{c._b=1;if(!S.re.has(c)){S.re.add(c);S.q.push(c)}addPts(2);beep(300)}
+ S.i++;S.f=false;save();drawStudy()}
+async function mnemo(){const c=S.q[S.i],b=$('mn'),m=conf(),o={};m.headers.forEach(h=>{if(c[h]&&!isImg(h,c[h]))o[h]=c[h]});
+ b.style.display='block';b.textContent='✨ Génération…';const r=await groq([{role:'user',content:'Crée un moyen mnémotechnique court, drôle et facile à retenir, en français, pour mémoriser : '+JSON.stringify(o)}]);b.textContent=r?'💡 '+r:'⚠️ Pas de réponse.'}
+/* ---------- QCM ---------- */
+function qcmStart(){Q={n:0,sc:0,st:0};qcmNext()}
+function qcmNext(){const l=list(),m=conf();$('qnext').style.display='none';$('qfb').textContent='';Q.lock=false;
+ const ah=m.headers.find(h=>m.verso[h]&&!isImg(h,(l.find(c=>c[h])||{})[h])),pool=ah?[...new Set(l.map(c=>c[ah]).filter(Boolean))]:[];
+ if(pool.length<2){$('qhead').textContent='';$('qface').innerHTML='';$('qopts').innerHTML='';$('qask').textContent='⚠️ Il faut au moins 2 cartes avec une réponse texte au verso (voir Recto / Verso).';return}
+ if(Q.n>=10){$('qface').innerHTML='';$('qopts').innerHTML=`<button class="big" onclick="qcmStart()">🔁 Rejouer</button>`;$('qask').textContent=`🏁 Score final : ${Q.sc} / 10`;$('qhead').textContent='';if(Q.sc>=7)confetti();return}
+ const el=l.filter(c=>c[ah]),c=el[Math.floor(Math.random()*el.length)];Q.ans=c[ah];
+ const opts=[Q.ans,...pool.filter(x=>x!==Q.ans).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+ $('qhead').textContent=`Question ${Q.n+1}/10 · Score ${Q.sc} · 🔥 série ${Q.st}`;$('qface').innerHTML=face(c,'recto');$('qask').textContent=`Quel est : ${ah} ?`;
+ $('qopts').innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>qcmPick(b,o);$('qopts').appendChild(b)})}
+function qcmPick(b,v){if(Q.lock)return;Q.lock=true;Q.n++;const ok=v===Q.ans;
+ [...$('qopts').children].forEach(x=>{if(x.textContent===Q.ans)x.classList.add('ok')});
+ if(ok){Q.sc++;Q.st++;addPts(5+Math.min(Q.st,5));beep(660);$('qfb').style.color='var(--p)';$('qfb').textContent=Q.st>2?`✅ Bravo ! Série de ${Q.st} 🔥`:'✅ Bonne réponse !'}
+ else{Q.st=0;b.classList.add('ko');beep(300);$('qfb').style.color='var(--d)';$('qfb').textContent='❌ Pas grave ! La bonne réponse est en vert.'}
+ $('qhead').textContent=`Question ${Q.n}/10 · Score ${Q.sc} · 🔥 série ${Q.st}`;$('qnext').style.display='block'}
+/* ---------- Page Cours ---------- */
+function renderCourses(){const m=conf();$('cfg-title').textContent=st.cur;
+ ['recto','verso'].forEach(s=>$('cfg-'+s).innerHTML=m.headers.map((h,i)=>`<label><input type="checkbox" data-s="${s}" data-i="${i}" ${m[s][h]?'checked':''}> ${esc(h)}</label>`).join(''));
+ $('imp-folder').innerHTML=st.folders.map(f=>`<option>${esc(f)}</option>`).join('');
+ $('man').innerHTML=m.headers.map((h,i)=>`<label class="mu">${esc(h)}</label><input type="text" id="man-${i}">`).join('');
+ $('gid').value=st.cfg.gid||'';$('gkey').value=st.cfg.gkey||'';$('snd').checked=!!st.cfg.sound;
+ $('clist').innerHTML=st.folders.map(f=>{const ks=Object.keys(st.notions).filter(k=>((st.meta[k]||{}).folder||'Général')===f);
+  return `<div style="margin-top:12px"><b>📁 ${esc(f)}</b>`+(ks.length?ks.map(k=>`<div class="ci"><span><b>${esc(k)}</b> (${st.notions[k].length})</span><span class="row"><button data-act="open" data-k="${esc(k)}">Ouvrir</button><select data-act="mv" data-k="${esc(k)}">${st.folders.map(x=>`<option ${x===f?'selected':''}>${esc(x)}</option>`).join('')}</select><button class="d" data-act="del" data-k="${esc(k)}">🗑️</button></span></div>`).join(''):'<p class="mu">Aucun cours.</p>')+'</div>'}).join('');
+ $('th').innerHTML='<tr>'+m.headers.map(h=>`<th>${esc(h)}</th>`).join('')+'<th></th></tr>';
+ $('tb').innerHTML=list().map((c,i)=>'<tr>'+m.headers.map(h=>`<td>${esc(c[h]??'')}</td>`).join('')+`<td><button class="d" data-act="dc" data-i="${i}" style="padding:3px 7px">❌</button></td></tr>`).join('')||'<tr><td colspan="9" class="mu">Aucune carte</td></tr>'}
+$('v-courses').addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.s){const m=conf();m[t.dataset.s][m.headers[t.dataset.i]]=t.checked;save()}
+ else if(t.dataset.act==='mv'){(st.meta[t.dataset.k]=st.meta[t.dataset.k]||{}).folder=t.value;save();renderSel();renderCourses()}
+ else if(t.id==='gid'||t.id==='gkey'){st.cfg[t.id]=t.value.trim();save()}});
+$('v-courses').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.tagName==='SELECT')return;const a=b.dataset.act,k=b.dataset.k;
+ if(a==='open'){st.cur=k;save();renderSel();show('study')}
+ else if(a==='del'&&confirm(`Supprimer le cours « ${k} » ?`)){delete st.notions[k];delete st.meta[k];if(!Object.keys(st.notions).length)st.notions['Nouveau cours']=[];if(!st.notions[st.cur])st.cur=Object.keys(st.notions)[0];save();renderSel();renderCourses()}
+ else if(a==='dc'){list().splice(+b.dataset.i,1);save();renderSel();renderCourses()}});
+function addCard(){const m=conf(),c={};let any=false;m.headers.forEach((h,i)=>{const v=$('man-'+i).value.trim();c[h]=v;if(v)any=true});
+ if(!any)return toast('Remplis au moins un champ');(st.notions[st.cur]=st.notions[st.cur]||[]).push(c);save();renderSel();renderCourses();toast('✨ Carte ajoutée')}
+function newFolder(){const n=$('nf').value.trim();if(!n)return toast('Entre un nom de dossier');if(st.folders.includes(n))return toast('Ce dossier existe déjà');st.folders.push(n);$('nf').value='';save();renderCourses()}
+/* ---------- Import CSV ---------- */
+function parseCSV(t,d){const r=[];let row=[''],q=false;for(let i=0;i<t.length;i++){const c=t[i];
+ if(c==='"'){if(q&&t[i+1]==='"'){row[row.length-1]+='"';i++}else q=!q}
+ else if(c===d&&!q)row.push('');
+ else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&t[i+1]==='\n')i++;r.push(row);row=['']}
+ else row[row.length-1]+=c}
+ if(row.length>1||row[0]!=='')r.push(row);return r}
+function importCSV(t,name){t=t.replace(/^\uFEFF/,'').replace(/```[a-z]*\n?/gi,'').trim();
+ const first=t.split(/\r?\n/)[0]||'',d=[';','\t',','].map(x=>[x,first.split(x).length]).sort((a,b)=>b[1]-a[1])[0][0],rows=parseCSV(t,d);
+ if(rows.length<2)return toast('⚠️ Tableau illisible ou vide');
+ const hs=rows[0].map((h,i)=>h.trim()||'Colonne '+(i+1)),data=rows.slice(1).filter(r=>r.some(x=>x.trim())).map(r=>Object.fromEntries(hs.map((h,i)=>[h,(r[i]||'').trim()])));
+ let n=name||'Nouveau cours',k=n,i=2;while(st.notions[k])k=`${n} (${i++})`;
+ st.notions[k]=data;st.meta[k]={folder:$('imp-folder').value||'Général',headers:hs};st.cur=k;save();renderSel();show('study');toast(`✨ « ${k} » importé (${data.length} cartes)`)}
+function importFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importCSV(r.result,f.name.replace(/\.[^.]+$/,''));r.readAsText(f);e.target.value=''}
+async function importUrl(){const m=$('gurl').value.match(/spreadsheets\/d\/([\w-]+)/);if(!m)return toast('Lien Google Sheet invalide');
+ try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv`);if(!r.ok)throw 0;importCSV(await r.text(),'Google Sheet')}catch(e){toast('Impossible : le Sheet doit être partagé « toute personne avec le lien ».')}}
+/* ---------- Google Drive ---------- */
+function gAuth(){if(!st.cfg.gid)return toast('Renseigne ton Client ID Google.');if(!window.google||!google.accounts)return toast('Services Google en chargement, réessaie.');
+ google.accounts.oauth2.initTokenClient({client_id:st.cfg.gid,scope:'https://www.googleapis.com/auth/drive.file',callback:r=>{if(r.error)return toast('Erreur Google : '+r.error);tok=r.access_token;$('gpick').style.display='block';toast('☁️ Drive connecté')}}).requestAccessToken({prompt:''})}
+function gPick(){if(!tok)return toast('Connecte-toi d\'abord.');if(!window.gapi)return toast('Services Google en chargement, réessaie.');
+ gapi.load('picker',()=>{const pb=new google.picker.PickerBuilder().addView(new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)).setOAuthToken(tok).setCallback(async d=>{
+  if(d[google.picker.Response.ACTION]!==google.picker.Action.PICKED)return;const f=d[google.picker.Response.DOCUMENTS][0];
+  try{const r=await fetch(`https://www.googleapis.com/drive/v3/files/${f[google.picker.Document.ID]}/export?mimeType=text/csv`,{headers:{Authorization:'Bearer '+tok}});if(!r.ok)throw new Error('code '+r.status);importCSV(await r.text(),f[google.picker.Document.NAME])}catch(e){toast('⚠️ Export impossible : '+e.message)}});
+  if(st.cfg.gkey)pb.setDeveloperKey(st.cfg.gkey);pb.build().setVisible(true)})}
+/* ---------- IA (Groq) ---------- */
+async function groq(msgs){if(!st.cfg.key){toast("Ajoute ta clé Groq dans l'onglet 🤖 IA");return null}
+ try{const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+st.cfg.key,'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs})}),d=await r.json();
+  const t=d.choices&&d.choices[0]&&d.choices[0].message.content;if(!t)toast('Erreur IA : '+((d.error&&d.error.message)||'réponse vide'));return t||null}catch(e){toast('Erreur de connexion à Groq');return null}}
+async function aiCourse(){const p=$('aip').value.trim();if(!p)return toast('Saisis un thème ou colle ton cours');toast('⏳ L\'IA prépare tes fiches…');
+ const r=await groq([{role:'user',content:'À partir du texte suivant, génère un tableau CSV strict (séparateur virgule, guillemets si besoin) avec une première ligne d\'en-têtes explicites en français, la 1re colonne étant le nom court de la notion. Aucun texte autour, uniquement le CSV brut :\n\n'+p}]);
+ if(r)importCSV(r,'Cours IA '+new Date().toLocaleDateString('fr-FR'))}
+async function chat(){const i=$('ci'),m=i.value.trim();if(!m)return;const b=$('chat');const add=(who,t)=>{const d=document.createElement('div');d.textContent=who+' '+t;b.appendChild(d);b.scrollTop=b.scrollHeight};
+ add('👤',m);i.value='';const hs=conf().headers,ctx=list().slice(0,20).map(c=>Object.fromEntries(hs.filter(h=>c[h]&&!isImg(h,c[h])).map(h=>[h,c[h]])));
+ const r=await groq([{role:'system',content:`Tu es un tuteur bienveillant, clair et concis, qui répond en français. Contexte du cours « ${st.cur} » : ${JSON.stringify(ctx)}`},{role:'user',content:m}]);add('🤖',r||'Je n\'ai pas pu répondre.')}
+/* ---------- Démarrage ---------- */
+renderSel();stats();show('study');
+</script></body></html>
