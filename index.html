@@ -541,12 +541,13 @@ function renderCourses() {
   // Ajout de carte : les champs portent le nom des colonnes choisies
   if (c) { $('addFront').placeholder = c.headers[c.front[0] ?? 0] || 'Recto'; $('addBack').placeholder = c.headers[c.back[0] ?? 1] || 'Verso'; }
   // Liste des cours
-  $('courseList').innerHTML = data.courses.map(x => `
+$('courseList').innerHTML = data.courses.map(x => `
     <div class="ci">
       <span>${x.id === data.activeId ? '▶ ' : ''}<b>${esc(x.name)}</b> · ${x.rows.length} fiches</span>
       <span>
         <select onchange="moveCourse('${x.id}',this.value)">${data.folders.map(f => `<option value="${f.id}" ${f.id === x.folderId ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select>
         <button class="g" onclick="setActive('${x.id}')">Choisir</button>
+        <button class="g" onclick="renameCourse('${x.id}')">✏️</button>
         <button class="d" onclick="deleteCourse('${x.id}')">🗑️</button>
       </span>
     </div>`).join('');
@@ -586,6 +587,17 @@ function deleteCourse(id) {
   if (data.activeId === id) data.activeId = data.courses[0]?.id || null;
   save(); renderAll();
 }
+function renameCourse(id) {
+  const course = data.courses.find(c => c.id === id);
+  if (!course) return;
+  const newName = prompt("Nouveau nom pour ce cours :", course.name);
+  if (newName && newName.trim() !== "") {
+    course.name = newName.trim();
+    save();
+    renderAll(); // Met à jour l'affichage partout
+    toast("Cours renommé ✅");
+  }
+}
 function toggleSound(on) { data.sound = on; save(); }
 
 /* =====================================================================
@@ -598,7 +610,7 @@ async function askGroq(system, prompt) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + data.groqKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] })
+    body: JSON.stringify({ model: 'openai/gpt-oss-20b', messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] })
   });
   const j = await res.json();
   if (!res.ok) throw new Error(j.error?.message || 'Erreur ' + res.status);
