@@ -598,7 +598,7 @@ async function askGroq(system, prompt) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + data.groqKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] })
+    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }] })
   });
   const j = await res.json();
   if (!res.ok) throw new Error(j.error?.message || 'Erreur ' + res.status);
